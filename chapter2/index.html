@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta charset="utf-8" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<title>Automated Application Packaging and Distribution With OpenShift - Basic Development Principles - Part 1/4</title>
+	</head>
+<body>
+<h1>Automated Application Packaging and Distribution With OpenShift - Basic Development Principles - Part 1/4</h1>
+
+<p>This is part one of a four parts article series I have written to discuss tools for automated application packaging and distribution in the world of containers.</p>
+
+<p>In this part, I am discussing the basics of app deployment automation. I am going through an example, which you can find here </p>
+
+<p><a href="https://github.com/wpernath/quarkus-simple.git" title="Simple Quarkus Example">https://github.com/wpernath/quarkus-simple.git</a> </p>
+
+<p>First, we are going to deploy this example and let OpenShift build it. Then we are analyzing which files were generated, how to extract them out of OpenShift and how to modify them to easily recreate your app in another namespace. Then we are going to discuss OpenShift Templates and finally Kustomize. </p>
+
+<p>In the next part of this article series, we are going to discuss two ways of packaging your application via Helm Charts and Operators. </p>
+
+<h2>Introduction and Motivation</h2>
+
+<p>As someone with a long history of developing software I do like containers and Kubernetes a lot, as those technologies will help me to increase my own productivity as I do not have to wait too much anymore to get what I need (a remote testing system, for example) from the ops departments. </p>
+
+<p>On the other side, writing applications, especially micro services for Kubernetes, could easily become quite complex, because I suddenly also have to maintain artifacts which do not necessarily belong to me:</p>
+
+<ul>
+	<li>ConfigMaps and secrets (well, I somehow have to store my app config anyway)</li>
+	<li>Deployment.yaml</li>
+	<li>Service.yaml</li>
+	<li>Ingress.yaml or Route.yaml</li>
+	<li>PersistentVolumeClaim.yaml</li>
+	<li>etc.</li>
+</ul>
+
+<p>In native Kubernetes, I have to take care of creating and maintaining those artifacts. Thanks to the Source-to-image concept of OpenShift, I don’t have to worry about most of those artifacts. They will be generated for me. </p>
+
+<pre><code class="code-highlighted code-bash">$<span class="syntax-all syntax-keyword">&gt;</span> oc new-project article-dev
+$<span class="syntax-all syntax-keyword">&gt;</span> oc new-app java:openjdk-11-ubi8~https://github.com/wpernath/quarkus-simple.git --name=simple --build-env MAVEN_MIRROR_URL=<span class="syntax-all syntax-keyword">&lt;</span>your maven repo on openshift<span class="syntax-all syntax-keyword">&gt;</span>
+$<span class="syntax-all syntax-keyword">&gt;</span> oc expose service/simple
+route.route.openshift.io/simple exposed</code></pre>
+
+<p>This will create a new project „article-dev“ in OpenShift. It will then create a new app based on the java builder image „openjdk-11-ubi8“ and provides it with the source code coming from GitHub. If you don’t have a local Maven mirror, ignore the —build-env parameter.</p>
+
+<p>Security settings, deployment, image, route and service will be generated for me (and also some OpenShift specific files, like ImageStream and / or DeploymentConfig). So I am able to fully focus on app development now. </p>
+
+<p>But what if I want to deploy my app from DEV stage over to the TEST stage? And how to automate this in tools like Jenkins or Tekton?</p>
+
+<p>What exactly are the artifacts I have to care about (it’s not just the image). And how to pull them over into the next stages? And how do they differ from my version?</p>
+
+<p>And what should I do, if I want to release my application? Should I use Helm? Should I use just an image repository like https://quay.io/ or the DockerHub? Or should I also invest in Operators? And when should I use what? And why? </p>
+
+<p>Those are exactly the questions, I am trying to answer with this series of blog posts. </p>
+
+<h2>Basic Kubernetes Files</h2>
+
+<p>So what are the necessary artifacts of an OpenShift app deployment? </p>
+
+<p><strong>Deployment:</strong> A deployment connects the image with a container and provides various runtime informations like environment variables, startup scripts, config map references etc. It also contains a definition of used ports </p>
+
+<p><strong>DeploymentConfig:</strong> This is OpenShift specific config file, which has mainly the same functionality as a <strong>Deployment</strong>. If you start today with your OpenShift tour, use <strong>Deployment</strong> instead of this one. </p>
+
+<p><strong>Service:</strong> A service contains the runtime information which kubernetes needs to load balance your application over different instances (pods)</p>
+
+<p><strong>Route:</strong> A route defines the external URL and where to route requests to.</p>
+
+<p><strong> ConfigMap:</strong> ConfigMaps contain - well - configurations for the app.</p>
+
+<p><strong>Secret:</strong> Like a ConfigMap, a Secret contains encrypted (well) password informations.</p>
+
+<p>Once those files are automatically generated, you can get them by using kubectl or oc:</p>
+
+<pre><code class="code-highlighted code-bash">$<span class="syntax-all syntax-keyword">&gt;</span> oc get deployment
+NAME     READY   UP-TO-DATE   AVAILABLE   AGE
+simple   1/1     1            1           17m</code></pre>
+
+<p>If you’re specifying „-o yaml“ option, you get the complete descriptor:</p>
+
+<pre><code class="code-highlighted code-bash">$<span class="syntax-all syntax-keyword">&gt;</span> oc get deployment simple -o yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    alpha.image.policy.openshift.io/resolve-names: <span class="syntax-all syntax-string">&#39;*&#39;</span>
+    app.openshift.io/vcs-ref: <span class="syntax-all syntax-string">&quot;&quot;</span>
+    app.openshift.io/vcs-uri: https://github.com/wpernath/quarkus-simple.git
+    deployment.kubernetes.io/revision: <span class="syntax-all syntax-string">&quot;2&quot;</span>
+    image.openshift.io/triggers: <span class="syntax-all syntax-string">&#39;[{&quot;from&quot;:{&quot;kind&quot;:&quot;ImageStreamTag&quot;,&quot;name&quot;:&quot;simple:latest&quot;,&quot;namespace&quot;:&quot;wpernath-article&quot;},&quot;fieldPath&quot;:&quot;spec.template.spec.containers[?(@.name==\&quot;simple\&quot;)].image&quot;,&quot;pause&quot;:&quot;false&quot;}]&#39;</span>
+    openshift.io/generated-by: OpenShiftWebConsole
+  creationTimestamp: <span class="syntax-all syntax-string">&quot;2021-04-20T08:36:11Z&quot;</span>
+  generation: 2
+  labels:
+    app: simple
+    app.kubernetes.io/component: simple
+    app.kubernetes.io/instance: simple
+    app.kubernetes.io/name: java
+    app.kubernetes.io/part-of: quarkus
+    app.openshift.io/runtime: java
+    app.openshift.io/runtime-version: openjdk-11-ubi8
+[...]</code></pre>
+
+<p>Just pipe the output into a new .yaml file and you’re done. You can directly use this file to create your app in a new namespace (except for the image section). But of course you would like to flatten the file a bit. There is a lot of garbage in there you don’t need. For example the „managedFileds“ section. Or the metadata section in the beginning. Just strip it down and add the file to your git repository.</p>
+
+<figure><img src="Bildschirmfoto%202021-04-21%20um%2008.21.23.png" alt="Image 1: A stripped down route.yaml file after exporting it"/><figcaption>Image 1: A stripped down route.yaml file after exporting it</figcaption></figure>
+
+<p>Just do the same with Route and Service and that’s all for now. You’re now able to create your app in a new namespace by simply doing:</p>
+
+<pre><code class="code-highlighted code-bash">$<span class="syntax-all syntax-keyword">&gt;</span> oc new-project article-test
+$<span class="syntax-all syntax-keyword">&gt;</span> oc policy add-role-to-user system:image-puller system:serviceaccount:article-test:default --namespace=article-dev
+$<span class="syntax-all syntax-keyword">&gt;</span> oc apply -f kubernetes-files/service.yaml
+$<span class="syntax-all syntax-keyword">&gt;</span> oc apply -f kubernetes-files/deployment.yaml
+$<span class="syntax-all syntax-keyword">&gt;</span> oc apply -f kubernetes-files/route.yaml</code></pre>
+
+<p>The command oc policy is necessary to let the namespace „article-test“ access the image in the namespace „article-dev“. Otherwise you’d get an error message in OpenShift, saying that the image was not found.</p>
+
+<p>So that’s one way of getting required files. Of course, if you have more things in your application, you need to export those files as well. If you have PersistenceVolumeClaims or ConfigMaps or Secrets, you need to export them as well.</p>
+
+<p>And especially for the Deployment and the Route, you have to manually change fields. For example, it does not make sense to use the lastest image from the Dev namespace in the Test one. You’d always have the same version of your application. This means, you have to change the image in the Deployment on every stage you’re using. This is where tools like OpenShift Templates or Kustomize come into play. </p>
+
+<h2>OpenShift Templates</h2>
+
+<p>OpenShift Templates are an easy way to create one file out of the required configuration files and add parameters in there. </p>
+
+<p>Unfortunately - as the name say -, they are OpenShift specific. But it is quite easy to create a template file out of the files, we’ve exported and modified above. </p>
+
+<figure><img src="Bildschirmfoto%202021-04-21%20um%2009.03.54.png" alt="Image 2: An OpenShift Template file"/><figcaption>Image 2: An OpenShift Template file</figcaption></figure>
+
+<p>To create a new template file, simply open your preferred editor and create a file called template.yaml. The header of that file should look like this:</p>
+
+<pre><code class="code-highlighted code-bash">apiVersion: template.openshift.io/v1
+kind: Template
+name: app-template
+metadata:
+  name: app-template
+  annotation:
+    tags: java
+    iconClass: icon-rh-openjdk
+    openshift.io/display-name: The APPLICATION template    
+    description: This Template creates the APPLICATION
+objects:</code></pre>
+
+<p>We are then adding our three files (route.yaml, deployment.yaml and service.yaml) into this file right under the objects tag. </p>
+
+<pre><code class="code-highlighted code-bash">  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: <span class="syntax-all syntax-parameter">${APPLICATION_NAME}</span>
+      name: <span class="syntax-all syntax-parameter">${APPLICATION_NAME}</span>
+    spec:
+      ports:
+      - name: 8080-tcp
+        port: 8080
+        protocol: TCP
+      selector:
+        app: <span class="syntax-all syntax-parameter">${APPLICATION_NAME}</span></code></pre>
+
+<p>As you can see, we are already using parameters here. Of course we have to define the parameters in the „parameters“-section of the yaml file:</p>
+
+<pre><code class="code-highlighted code-bash">parameters:
+- name: APPLICATION_NAME
+  description: The name of the application you<span class="syntax-all syntax-string">&#39;d like to create
+</span><span class="syntax-all syntax-string">  displayName: Application Name
+</span><span class="syntax-all syntax-string">  required: true
+</span><span class="syntax-all syntax-string">  value: simple
+</span></code></pre>
+
+<p>The reason why the OpenShift Template definition allows us to define properties like description and displayName is that a template, once instantiated in an OpenShift namespace, can be used to create applications from within the UI. </p>
+
+<pre><code class="code-highlighted code-bash">$<span class="syntax-all syntax-keyword">&gt;</span> oc new-project article-template
+$<span class="syntax-all syntax-keyword">&gt;</span> oc apply -f kubernetes-files/template.yaml
+template.template.openshift.io/app-template created</code></pre>
+
+<p>Just open the OpenShift web console now, change the project and click on „+Add“ and choose the Developer Catalog. You should be able to find a template called „app-template“. This is the one we’ve created. </p>
+
+<figure><img src="Bildschirmfoto%202021-04-21%20um%2009.25.13.png" alt="Image 3: The Developer Catalog after adding the template "/><figcaption>Image 3: The Developer Catalog after adding the template </figcaption></figure>
+
+<p>Instantiate the template and fill in the required fields. </p>
+
+<figure><img src="Bildschirmfoto%202021-04-21%20um%2009.28.55.png" alt="Image 4: Template instantiation with required fields"/><figcaption>Image 4: Template instantiation with required fields</figcaption></figure>
+
+<p>Then click on create and after a short while, you should see the application’s deployment progressing. Once it is done, you should be able to access the route. </p>
+
+<p>With this command you’re able to create your application based on the template without the UI:</p>
+
+<pre><code class="code-highlighted code-bash">$<span class="syntax-all syntax-keyword">&gt;</span> oc new-app app-template -p APPLICATION_NAME=simplecli -p HOST_NAME=simplecli-article-template.apps.example.com
+--<span class="syntax-all syntax-keyword">&gt;</span> Deploying template <span class="syntax-all syntax-string">&quot;article-template/app-template&quot;</span> to project article-template
+
+     <span class="syntax-all syntax-keyword">*</span> With parameters:
+        <span class="syntax-all syntax-keyword">*</span> Application Name=simplecli
+        <span class="syntax-all syntax-keyword">*</span> Image Name=quay.io/wpernath/simple-quarkus
+        <span class="syntax-all syntax-keyword">*</span> Image Tag=latest
+        <span class="syntax-all syntax-keyword">*</span> Host Name= simplecli-article-template.apps.example.com
+
+--<span class="syntax-all syntax-keyword">&gt;</span> Creating resources ...
+    service <span class="syntax-all syntax-string">&quot;simplecli&quot;</span> created
+    deployment.apps <span class="syntax-all syntax-string">&quot;simplecli&quot;</span> created
+    route.route.openshift.io <span class="syntax-all syntax-string">&quot;simplecli&quot;</span> created
+--<span class="syntax-all syntax-keyword">&gt;</span> Success
+    Access your application via route <span class="syntax-all syntax-string">&#39;simplecli-article-template.apps.example.com&#39;</span>
+    Run <span class="syntax-all syntax-string">&#39;oc status&#39;</span> to view your app.</code></pre>
+
+<h3>Summary of using OpenShift Templates</h3>
+
+<p>Creating and maintaining an OpenShift Template is not that hard. The way of specifying parameters is self explaining. And I personally like the deep integration into OpenShift’s developer console and the <code>oc</code> command. </p>
+
+<p>Unfortunately, they are OpenShift only. Which means, if you are using a local Kubernetes installation and a production OpenShift version, it’s not easily possible to reuse them. But if your complete development and production environments are based on OpenShift, you should give it a try. </p>
+
+<p>I personally would prefer Templates if I should take care of standardization of the development process. I could create a template of a standard application (including BuildConfig etc.), import it into the global <code>openshift</code> project so that all users are able to reuse my base work. — Just like the other OpenShift Templates shipped with any OpenShift installation. </p>
+
+<h2>Kustomize</h2>
+
+<p>Kustomize is not a templating engine. Kustomize is using the fact, that only a few fields have to be changed from stage to stage. Which means, you’re using a base set of files (deployment, service, route etc.) and for each stage you’re creating files just with the changes. The patch mechanism of Kustomize takes care of merging the files together. </p>
+
+<p>This is very handy if you don’t want to learn just another templating engine. Or if you don’t want to maintain a file which could easily contain thousands of lines of informations (OpenShift Templates). </p>
+
+<p>Kustomize was originally founded by Google and is now a subproject of Kubernetes. <code>kubectl</code> and <code>oc</code> have everything necessary build-in.</p>
+
+<p>Let’s have a look in how Kustomize works:</p>
+
+<pre><code class="code-highlighted code-bash">tree kustomize
+kustomize
+├── base
+│&nbsp;&nbsp; ├── deployment.yaml
+│&nbsp;&nbsp; ├── kustomization.yaml
+│&nbsp;&nbsp; ├── route.yaml
+│&nbsp;&nbsp; └── service.yaml
+└── overlays
+    ├── dev
+    │&nbsp;&nbsp; ├── deployment.yaml
+    │&nbsp;&nbsp; ├── kustomization.yaml
+    │&nbsp;&nbsp; └── route.yaml
+    ├── prod
+    └── stage
+        ├── deployment.yaml
+        ├── kustomization.yaml
+        └── route.yaml
+
+5 directories, 10 files</code></pre>
+
+<p>As you can see, there are a set of base files and an overlays directory. Base defines all resources which Kubernetes / OpenShift needs in order to deploy your application (they are all well known from the other chapters above). </p>
+
+<p>Just <code>kustomization.yaml</code> is new. Let’s have a look at this file:</p>
+
+<figure><img src="Bildschirmfoto%202021-04-21%20um%2016.52.32.png" alt="Image 5: Structure of kustomization.yaml "/><figcaption>Image 5: Structure of kustomization.yaml </figcaption></figure>
+
+<p>As you can see, this file defines its resources (deployment, service and route) but also adds a section called „commonLabels“. Those labels will be applied to all resources generated by Kustomize. </p>
+
+<p>With:</p>
+
+<pre><code class="code-highlighted code-bash">$<span class="syntax-all syntax-keyword">&gt;</span> oc new-project article-kustomize
+$<span class="syntax-all syntax-keyword">&gt;</span> oc apply -k overlays/dev
+service/simple created
+deployment.apps/simple created
+route.route.openshift.io/simple created</code></pre>
+
+<p>We are able to process all files and deploy our application. If you’re installing the Kustomize cli tool (for example with <code>brew install kustomize</code> on macOS), you’re able to debug the output:</p>
+
+<figure><img src="Bildschirmfoto%202021-04-21%20um%2017.00.07.png" alt="Image 6: Output of kustomize tool"/><figcaption>Image 6: Output of kustomize tool</figcaption></figure>
+
+<p>A big benefit of using Kustomize is that you’re maintaining only the differences between each stage, meaning that the overlay files are quite small and clear. If a file does not change between a stage and the other, it does not need to be duplicated. </p>
+
+<p>With kustomization fields like „commonLabels“ or „commonAnnotations“, you can specify labels or annotations which you would like to have in every metadata section of every generated file. „namePrefix“ will be used to specify a prefix on every name tag. </p>
+
+<pre><code class="code-highlighted code-bash">$<span class="syntax-all syntax-keyword">&gt;</span> kustomize build kustomize/overlays/stage</code></pre>
+
+<p>This command shows you how Kustomize will merge the files together for the stage overlay. As you can see, all files have „staging“ as name prefix and additionally we have a new commonLabel (variant: staging) and an annotation (note: we are on staging now). </p>
+
+<figure><img src="Bildschirmfoto%202021-04-22%20um%2008.11.36.png" alt="Image 7: Output of kustomize tool for stage overlay"/><figcaption>Image 7: Output of kustomize tool for stage overlay</figcaption></figure>
+
+<p>But we still have „app“ and „org“ labels specified. </p>
+
+<pre><code class="code-highlighted code-bash">$<span class="syntax-all syntax-keyword">&gt;</span> oc apply -k kustomize/overlays/stage</code></pre>
+
+<h3>More sophisticated examples?</h3>
+
+<p>Instead of using „patchStrategicMerge“ files, one could just maintain a <code>kustomization.yaml</code> file with everything in there.</p>
+
+<figure><img src="Bildschirmfoto%202021-04-24%20um%2007.20.44.png" alt="Image 8: Using inline patches"/><figcaption>Image 8: Using inline patches</figcaption></figure>
+
+<p>There are specific fields in newer versions of Kustomize which helps you to maintain your stages. For example, if it’s just about changing the tag of the target image, you could simply use the „images“ field array specifier (have a look at Image 8). </p>
+
+<p>With the „patches“ field array, you can issue a patch on a list of target files, like replacing the target host name of the route or adding health checks for the application in the Deployment (see Image 9 and 10). </p>
+
+<figure><img src="Bildschirmfoto%202021-04-24%20um%2007.27.29.png" alt="Image 9: Adding health checks to the Deployment"/><figcaption>Image 9: Adding health checks to the Deployment</figcaption></figure>
+
+<figure><img src="Bildschirmfoto%202021-04-24%20um%2007.28.02.png" alt="Image 10: The patch to add health checks"/><figcaption>Image 10: The patch to add health checks</figcaption></figure>
+
+<p>You can even generate the ConfigMap based on fixed parameters or properties files. </p>
+
+<p>Unfortunately, it seems that <code>oc apply -k</code> does not contain recent Kustomize features. So if you want to use them, you need to use the <code>kustomize</code> cli tool and pipe the output to <code>oc apply -f</code>.</p>
+
+<pre><code class="code-highlighted code-bash">$<span class="syntax-all syntax-keyword">&gt;</span> kustomize build kustomize_ext/overlays/stage <span class="syntax-all syntax-keyword">|</span> oc apply -f -</code></pre>
+
+<p> For more information and more sophisticated examples have a look at the official home page: <a href="https://kustomize.io/">https://kustomize.io/</a></p>
+
+<h3>Summary of using Kustomize</h3>
+
+<p>Using Kustomize is quite easy and straight forward. You don’t really have to learn a templating DSL, you just need to understand patch and merge and how it works. Kustomize makes it easy for you as a CI/CD guy to separate the configuration of your application for every stage. As Kustomize is also a Kubernetes subproject and tightly integrated into Kubernetes’ tools, you don’t have to worry that Kustomize would suddenly disappear.</p>
+
+<p>ArgoCD has build-in support for Kustomize as well, so that if you’re doing CD with Argo, you have automatically support for this as well. </p>
+
+<h2>Summary</h2>
+
+<p>In this article we have learned how to build an application using OpenShift’s source-to-image and we’ve learned OpenShift Templates and Kustomize. This is the base technology for automation of application deployment and packaging. </p>
+
+<p>Now we have an understanding of which artifacts need to be taken into account when we want to release our application and how to modify those to make sure, the new environment is capable of handling our app. </p>
+
+<p>In the next article, which should be posted end of May 2021, we are using what we’ve learned here to build a package with Helm or Operators. </p>
+
+</body>
+</html>
+
