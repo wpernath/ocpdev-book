@@ -1,7 +1,7 @@
 # Chapter Four: CI with Tekton Pipelines
-In chapters two and three of this book we have discussed the basics of application packaging with Kustomize and Helm Charts and Operators. We also discussed how to handle images and all the metadata artifacts required for working with Kubernetes. 
+Chapters 2 and 3 of this book discussed the basics of application packaging with Kustomize, Helm Charts, and Operators. They also discussed how to handle images and all the metadata required for working with Kubernetes. 
 
-This chapter discusses the integration into Kubernetes native pipelines with [Tekton](https://tekton.dev). 
+This chapter discusses how to integrate native pipelines into Kubernetes using [Tekton](https://tekton.dev). 
 
 ## Tekton / OpenShift Pipelines
 [Tekton](https://tekton.dev "Tekton Homepage") is an open source framework to create pipelines in a Kubernetes and cloud-native way. This means, there is no central tool you need to maintain (like Jenkins, for example) but you only have to install a Kubernetes Operator into your Kubernetes cluster, which provides some custom resource definitions (CRDs). 
