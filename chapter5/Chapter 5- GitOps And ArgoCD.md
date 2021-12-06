@@ -47,7 +47,7 @@ Once the Application is registered, ArgoCD starts „healing“ the application,
 ## The Use Case: Implementing GitOps for our Quarkus-Simple App
 We’ve been using the [quarkus-simple application][3] over the last three blog posts. Let’s continue to use this and create a GitOps workflow for it. You can find all resources we are discussing here in the `gitops` folder within the `quarkus-simple` application on GitHub.
 
-We are going to setup ArgoCD (via [OpenShift GitOps Operator][4]) on OpenShift 4.8 (via [CodeReady Containers][5]). We are going to use [Tekton to build a pipeline][6] which updates our [quarkus-simple-config][7] Git repository with the latest image digest of the build. ArgoCD should then detect the changes and should start a synchronization of our application.
+We are going to setup ArgoCD (via [OpenShift GitOps Operator][4]) on OpenShift 4.9 (via [CodeReady Containers][5]). We are going to use [Tekton to build a pipeline][6] which updates our [quarkus-simple-config][7] Git repository with the latest image digest of the build. ArgoCD should then detect the changes and should start a synchronization of our application.
 
 **NOTE:  Typically, a GitOps pipeline is not directly pushing changes into the main branch of a configuration repository. Instead, the pipeline should commit into a feature- or release branch and should create a pull request, so that changes can be reviewed before they are merged to the main branch. **
 
@@ -630,7 +630,7 @@ Thanks a lot for this. Thanks for reading. And thanks a lot for all your feedbac
 [25]:	https://www.opensourcerers.org/2021/05/24/automated-application-packaging-and-distribution-with-openshift-part-23/
 [26]:	https://www.opensourcerers.org/2021/07/26/automated-application-packaging-and-distribution-with-openshift-tekton-pipelines-part-34-2/
 
-[image-1]:	Bildschirmfoto%202021-07-27%20um%2015.09.27.png
+[image-1]:	gitops-delivery-chain.png
 [image-2]:	Bildschirmfoto%202021-08-04%20um%2009.20.44.png
 [image-3]:	Bildschirmfoto%202021-08-04%20um%2009.30.15.png
 [image-4]:	Bildschirmfoto%202021-08-04%20um%2015.53.03.png
