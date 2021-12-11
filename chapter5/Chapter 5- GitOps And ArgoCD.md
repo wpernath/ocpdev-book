@@ -395,36 +395,47 @@ That’s it.
 ### Testing the Pipeline
 As I haven’t been able to convince the Developer perspective to run the pipeline with a different ServiceAccount, which we need due to the two secrets we need to provide, we need to start it via the CLI. 
 
-For your convenience, I have created a Bash script, called `gitops/tekton/pipeline.sh` which can be used to initialize your namespace and start the pipeline.
+For your convenience, I have created a Bash script, called `gitops/tekton/pipeline.sh` which can be used to initialize your namespace and start the pipeline. 
 
 ```bash
-$> cd gitops/tekton/
-$> ./pipeline.sh init -u <git-user-name> -p <git-hash>
-$> ./pipeline.sh start -u <quay-user-name> -p <quay-hash>
+$> ./pipeline.sh init [--force] --git-user <user> \
+	--git-password <pwd> \
+	--registry-user <user> \
+	--registry-password <pwd> 
 ```
 
-Whenever the pipeline is successfully executed, you should see an updated message on the `person-service-config` Git repository. And you should see that ArgoCD has initiated a synchronization process, which ends with a redeployment of the quarkus application.
+This call (if given the `--force` flag) will create the following namespaces and ArgoCD applications for you:
+- `book-ci`: Pipelines, Tasks and a Nexus instance 
+- `book-dev`: The current dev stage
+- `book-stage`: The last stage release
+
+```bash
+$> ./pipeline.sh build -u <reg-user> \
+	-p <reg-password>
+```
+
+This starts the development pipeline as discussed here. Whenever the pipeline is successfully executed, you should see an updated message on the `person-service-config` Git repository. And you should see that ArgoCD has initiated a synchronization process, which ends with a redeployment of the quarkus application.
 
 ## Creating a stage-release Pipeline
 How does a staging pipeline has to look like? Well, we need a process which does the following in our case:
 - Cloning the config repository
 - Creating a release branch (e.g. release-1.2.3) in Git
 - Getting the image digest from somewhere (in our case we are extracting the image out of the currently used development environment)
-- Tagging the image in the image repository (e.g. `quay.up/wpernath/person-service-config:1.2.3`)
+- Tagging the image in the image repository (e.g. `quay.io/wpernath/person-service-config:1.2.3`)
 - Updating the config repository and let the stage config point to the newly tagged image
 - Committing and pushing the code back to the Git repository
 - Creating a pull / merge request
-![Image 12: The staging pipeline][image-10]
 
-We then have a manual process, where a testing specialist is accepting the pull request and merges the content from the branch back into main. Then ArgoCD would take the changes and updates the running staging instance of Kubernetes.
+![Image 10: The staging pipeline][image-10]
+
+We then have a manual process, where a testing specialist is accepting the pull request and merges the content from the branch back into main. Then ArgoCD would take the changes and updates the running staging instance within Kubernetes.
 
 The script is able to start the staging pipeline, creating release 1.2.5, by executing:
 
 ```bash
-$> ./pipeline.sh stage -r 1.2.5
+$> ./pipeline.sh stage -r 1.0.0-beta1
 ```
 
-![Image 13: The Git release after executing the pipeline][image-11]
 
 ### Setup of the Pipeline
 The Steps `git-clone` and `git-branch` are using existing ClusterTasks, so nothing to explain here, except that we are using a new Tekton feature: [Conditional execution of a Task][17] by using a `When Expression`. In our case the task `git-branch` should only be executed, if there is a `release-name` specified. 
@@ -538,7 +549,7 @@ metadata:
 ArgoCD sorts all resources first by the phase, then by the wave and finally by type and name. If you know that you have some resources which need to be applied before others, then simply group them via the annotation. By default, ArgoCD uses wave zero for any resources and hooks. 
 
 ### Non-declarative deployments
-Non-declarative deployments are something which we all are more used to do than anything else. Even if we’re creating a hand-over document for the OPS guys, we are providing imperative instructions on how to install the application. And we’re used to create installation scripts for more complex applications.
+Non-declarative deployments are something which we all are more used to do than anything else. Even if we’re creating a hand-over document for the OPs department, we are providing imperative instructions on how to install the application. And we’re used to create installation scripts for more complex applications.
 
 However, the preferred way of installing applications with Kubernetes is to use declarative deployments. We are providing the service, the deployment, persistent volume claims, secrets, config maps etc. 
 
@@ -582,13 +593,13 @@ As a result of a successful synchronization, you could also start a Tekton Pipel
 
 **NOTE: Please keep in mind to add your sync Jobs to the base kustomization.yaml file. Otherwise they won’t be processed.**
 
-![Image 14: The synchronization log of ArgoCD with a pre and a post sync hook][image-12]
+![Image 11: The synchronization log of ArgoCD with a pre and a post sync hook][image-11]
 
 ### Git repository management
 In a typical enterprise with - at least - dozen of applications, you easily end up with a lot of Git repositories. Please keep in mind that you have to manage them properly, especially in terms of security (who is able to push what). 
 
 If you want to use one single config Git repository for all your applications and stages, please keep in mind that Git was never meant to automatically resolve merge conflicts. Instead, it sometimes needs to be done manually. Be careful in such a case and plan your releases thoroughly. Otherwise you might end up in not being able to automatically create and merge release branches anymore. 
- ![Image 15: Possible merge conflicts  with automatic concurrent pull requests][image-13]
+ ![Image 12: Possible merge conflicts  with automatic concurrent pull requests][image-12]
 
 ### Secret Management
 Another thing which requires you to think even more about it is a proper Secret management. A Secret contains access tokens to mission critical external apps like a database or a SAP system (or like in our cases a token to GitHub or quay.io). You don’t want to store those confidential informations publicly accessible in a Git repository.
@@ -619,13 +630,7 @@ Having a tool like ArgoCD which keeps the repository and the Kubernetes cluster 
 ## Final note on this blog series
 I started writing **Automated Application Packaging and Distribution with OpenShift** back in January 2021 originally, because I just wanted to have some notes for my day to day work. Then I realized that there are tons of things out there which need to be explained. People in my classes were telling me that they are overwhelmed with all the news around Kubernetes and OpenShift, so I decided to not only talk about it, but also write and blog about it. 
 
-The complete article series now contains everything you need to start developing for OpenShift and helps you to understand making best use out of it when it comes to automation and CI/CD.
-- [Part one][21] talks about container images and explains all the basic files and gives you a guide through OpenShift Templates and Kustomize as a base technology for application packaging
-- [Part two][22] provides an overview of the various packaging formats, namely Helm Charts and Kubernetes Operators, and explains how they differ from each other and how to create them
-- [Part three][23] gives you a detailed view of Tekton / OpenShift Pipelines and helps you to quickly start your CI/CD process
-- And finally part four (this one), provides a detailed overview of GitOps and how to use it with OpenShift. 
-
-The positive feedback I got from readers around the world motivated me a lot to continue writing just another chapter. If I’d export all the articles as PDFs, I would get over 110 DIN A4 pages. I wasn’t aware that I am able to write so much on a development topic.
+The positive feedback I got from readers around the world motivated me a lot to continue writing just another chapter. I wasn’t aware that I am able to write so much on a development topic.
 
 Thanks a lot for this. Thanks for reading. And thanks a lot for all your feedback.
 
@@ -649,9 +654,6 @@ Thanks a lot for this. Thanks for reading. And thanks a lot for all your feedbac
 [18]:	https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/
 [19]:	https://argo-cd.readthedocs.io/en/stable/user-guide/resource_hooks/
 [20]:	https://www.hashicorp.com/products/vault/secrets-management
-[21]:	https://www.opensourcerers.org/2021/04/26/automated-application-packaging-and-distribution-with-openshift-part-12/
-[22]:	https://www.opensourcerers.org/2021/05/24/automated-application-packaging-and-distribution-with-openshift-part-23/
-[23]:	https://www.opensourcerers.org/2021/07/26/automated-application-packaging-and-distribution-with-openshift-tekton-pipelines-part-34-2/
 
 [image-1]:	gitops-delivery-chain.png
 [image-2]:	install-gitops-operator.png
@@ -662,7 +664,6 @@ Thanks a lot for this. Thanks for reading. And thanks a lot for all your feedbac
 [image-7]:	tekton-non-gitops-pipeline.png
 [image-8]:	gitops-dev-pipeline.png
 [image-9]:	tekton-parameter-mapping.png
-[image-10]:	Bildschirmfoto%202021-08-20%20um%2010.27.07.png
-[image-11]:	Bildschirmfoto%202021-08-20%20um%2010.48.51.png
-[image-12]:	Bildschirmfoto%202021-08-13%20um%2000.19.58.png
-[image-13]:	Unbenanntes_Projekt.jpg
+[image-10]:	gitops-stage-pipeline.png
+[image-11]:	argocd-sync-log.png
+[image-12]:	git-repo-merges.jpg
