@@ -414,7 +414,7 @@ $> ./pipeline.sh build -u <reg-user> \
 	-p <reg-password>
 ```
 
-This starts the development pipeline as discussed here. Whenever the pipeline is successfully executed, you should see an updated message on the `person-service-config` Git repository. And you should see that ArgoCD has initiated a synchronization process, which ends with a redeployment of the quarkus application.
+This starts the development pipeline as discussed here. Whenever the pipeline is successfully executed, you should see an updated message on the `person-service-config` Git repository. And you should see that ArgoCD has initiated a synchronization process, which ends with a redeployment of the Quarkus application.
 
 ## Creating a stage-release Pipeline
 How does a staging pipeline has to look like? Well, we need a process which does the following in our case:
@@ -599,7 +599,6 @@ As a result of a successful synchronization, you could also start a Tekton Pipel
 In a typical enterprise with - at least - dozen of applications, you easily end up with a lot of Git repositories. Please keep in mind that you have to manage them properly, especially in terms of security (who is able to push what). 
 
 If you want to use one single config Git repository for all your applications and stages, please keep in mind that Git was never meant to automatically resolve merge conflicts. Instead, it sometimes needs to be done manually. Be careful in such a case and plan your releases thoroughly. Otherwise you might end up in not being able to automatically create and merge release branches anymore. 
- ![Image 12: Possible merge conflicts  with automatic concurrent pull requests][image-12]
 
 ### Secret Management
 Another thing which requires you to think even more about it is a proper Secret management. A Secret contains access tokens to mission critical external apps like a database or a SAP system (or like in our cases a token to GitHub or quay.io). You don’t want to store those confidential informations publicly accessible in a Git repository.
@@ -625,14 +624,6 @@ There are many ideas and even more tools out there on how to do this. The easies
 With Kubernetes and GitOps we are able to define everything as a file, which helps us to store everything in a Version control system and use what those VCS provide. 
 
 Having a tool like ArgoCD which keeps the repository and the Kubernetes cluster in sync, is just the natural evolution of the idea. 
-
-
-## Final note on this blog series
-I started writing **Automated Application Packaging and Distribution with OpenShift** back in January 2021 originally, because I just wanted to have some notes for my day to day work. Then I realized that there are tons of things out there which need to be explained. People in my classes were telling me that they are overwhelmed with all the news around Kubernetes and OpenShift, so I decided to not only talk about it, but also write and blog about it. 
-
-The positive feedback I got from readers around the world motivated me a lot to continue writing just another chapter. I wasn’t aware that I am able to write so much on a development topic.
-
-Thanks a lot for this. Thanks for reading. And thanks a lot for all your feedback.
 
 [1]:	https://www.gitops.tech "GitOps description"
 [2]:	https://argoproj.github.io/argo-cd/
@@ -666,4 +657,3 @@ Thanks a lot for this. Thanks for reading. And thanks a lot for all your feedbac
 [image-9]:	tekton-parameter-mapping.png
 [image-10]:	gitops-stage-pipeline.png
 [image-11]:	argocd-sync-log.png
-[image-12]:	git-repo-merges.jpg
