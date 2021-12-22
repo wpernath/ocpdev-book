@@ -90,7 +90,7 @@ This is completely up to you. But option 1 is probably not optimal because combi
 
 For now, create this configuration repository by copying the files from the  `quarkus-simple/kustomize_ext` directory into the newly created Git repository.
 
-**AO: It's not create when or how the Git repository was created. And it's not clear whether you're talking here about an empty directory or a cloned respository.  Does the reader have to issue a `mkdir` command? Or `git clone`? The latter command does the copying.**
+**AO: It's not clear when or how the Git repository was created. And it's not clear whether you're talking here about an empty directory or a cloned respository.  Does the reader have to issue a `mkdir` command? Or `git clone`? The latter command does the copying.**
 
 **NOTE**: The original kustomization.yaml file already contains an image section. This should be removed first.
 
