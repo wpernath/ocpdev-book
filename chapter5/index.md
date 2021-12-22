@@ -292,7 +292,7 @@ This means you need to create a task with at least the following parameters:
 - `GIT_REPOSITORY`: The configuration repository to clone.
 - `CURRENT_IMAGE`: The name of the image in the `deployment.yaml` file.
 - `NEW_IMAGE`: The name of the new image to deploy.
-- `NEW_DIGEST`: The name of digest of the new image to deploy. This digest is generated in the `build-and-push-image` step that appears both the in the Chapter 4 version and this chapter's version of the pipeline.
+- `NEW_DIGEST`: The name of digest of the new image to deploy. This digest is generated in the `build-and-push-image` step that appears in both the Chapter 4 version and this chapter's version of the pipeline.
 - `KUSTOMIZE_PATH`: The path within the `GIT_REPOSITORY` with the `kustomization.yaml` file.
 
 And of course, you need to create a workspace to hold the project files.
