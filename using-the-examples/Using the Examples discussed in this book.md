@@ -8,7 +8,12 @@ In order to run all of the examples I am discussing in this book, you should hav
 - git
 - Docker
 - OpenShift client (`oc`) matching the version of the OpenShift Cluster
-- An Editor to work with (visual code, eclipse, jetbrains)
+- An Editor to work with (VScode, Eclipse, IntelliJ)
+
+OpenShift needs to have the following Operators installed:
+- OpenShift GitOps
+- OpenShift Pipelines
+- Crunchy Postgres for Kubernetes by Crunchy Data
 
 ## Getting an OpenShift instance
 You have three possible options to get an OpenShift installation
@@ -46,7 +51,15 @@ All the examples can be found on GitHub: [https://github.com/wpernath/book-examp
 Please fork it and then use it as you want to use it. 
 
 ### Chapter One: Folders
-The folder `person-service` contains the Java sources of the Quarkus example
+The folder `person-service` contains the Java sources of the Quarkus example. If you want to deploy it on OpenShift, please make sure to first install a PostgreSQL server, either via Crunchy Data or by instantiating the template `postgresql-persistent`. 
+
+```bash
+$> oc new-app postgresql-persistent \
+	-p POSTGRESQL_USER=wanja \
+	-p POSTGRESQL_PASSWORD=wanja \
+	-p POSTGRESQL_DATABASE=wanjadb \
+	-p DATABASE_SERVICE_NAME=wanjaserver
+```
 
 ### Chapter Two: Folders
 - `raw-kubernetes` contains the raw Kubernetes manifest files 
@@ -97,7 +110,7 @@ $> ./pipeline.sh build -u <reg-user> \
 	-p <reg-password>
 ```
 
-This starts the development pipeline as discussed in chapter 5. Whenever the pipeline is successfully executed, you should see an updated message on the `person-service-config` Git repository. And you should see that ArgoCD has initiated a synchronization process, which ends with a redeployment of the quarkus application.
+This starts the development pipeline as discussed in chapter 5. Whenever the pipeline is successfully executed, you should see an updated message on the `person-service-config` Git repository. And you should see that ArgoCD has initiated a synchronization process, which ends with a redeployment of the Quarkus application.
 
 To start the staging pipeline, call
 ```bash

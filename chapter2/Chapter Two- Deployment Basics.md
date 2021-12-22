@@ -30,6 +30,17 @@ route.route.openshift.io/person-service exposed
 
 Security settings, deployment, image, route and service will be generated for you by OpenShift (and also some OpenShift specific files, such as `ImageStream` or `DeploymentConfig`). These OpenShift conveniences allow you to fully focus on app development. 
 
+In order to let the example start successfully, we have to create a PostgreSQL database server as well. Just execute the following command. We will discuss it later.
+
+```bash
+$> oc new-app postgresql-persistent \
+	-p POSTGRESQL_USER=wanja \
+	-p POSTGRESQL_PASSWORD=wanja \
+	-p POSTGRESQL_DATABASE=wanjadb \
+	-p DATABASE_SERVICE_NAME=wanjaserver
+```
+
+
 ## Basic Kubernetes Files
 So what are the necessary artifacts in an OpenShift app deployment? 
 

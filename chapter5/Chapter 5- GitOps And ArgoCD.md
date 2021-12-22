@@ -574,20 +574,38 @@ spec:
       restartPolicy: Never
       containers:
         - name: post-install-job
-          image: "registry.access.redhat.com/ubi8/ubi-minimal:latest"              
+          env:
+            - name: NAMESPACE
+              value: book-dev
+          image: "quay.io/wpernath/kustomize-ubi:v4.4.1"              
           command: 
           - /bin/sh
           - -c 
           - |
             echo "WELCOME TO the post installation hook for ArgoCD "
             echo "-------------------------------------------------"
-            echo "Here we could start integration tests or health checks"
-            echo "..."
+            echo "We are now going to fill the database by calling "
+            echo "the corresponding REST service"
+            
+            SERVICE_URL=person-service.${NAMESPACE}.svc:8080/person
+            NUM_PERSONS=$(curl http://$SERVICE_URL/count)
 
-            sleep 10
+            if [ $NUM_PERSONS -eq 0 ]; then
+              echo "There are no persons in the database, filling some"
+               
+              http --ignore-stdin --json POST ${SERVICE_URL} firstName=Carlos lastName=Santana salutation=Mr
+              http --ignore-stdin --json POST ${SERVICE_URL} firstName=Joe lastName=Cocker salutation=Mr
+              http --ignore-stdin --json POST ${SERVICE_URL} firstName=Eric lastName=Clapton salutation=Mr
+              http --ignore-stdin --json POST ${SERVICE_URL} firstName=Kurt lastName=Cobain salutation=Mr
+
+            else
+              echo "There are already $NUM_PERSONS persons in the database."
+              http --ignore-stdin ${SERVICE_URL} 
+            fi
+            
 ```
 
-This is just a simple Job which does nothing more than printing a message and then waiting for 10 seconds. The only difference to a „normal“ Job is the annotation. 
+This is just a simple Job which checks to see if there is any data in the PostgreSQL database and if not, it uses the person-service to create some. The only difference to a „normal“ Job is the annotation. 
 
 As a result of a successful synchronization, you could also start a Tekton PipelineRun or any Kubernetes resource, which is already registered in your cluster.
 
