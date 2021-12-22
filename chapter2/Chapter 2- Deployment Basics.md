@@ -1,4 +1,4 @@
-# Chapter Two: Deployment Basics
+# Chapter 2: Deployment Basics
 In this chapter we are going to discuss how the deployment of apps work in Kubernetes and OpenShift, what manifest files are involved, and how to change them so that you can redeploy your application into a new, clean namespace without rebuilding it. 
 
 The chapter also discusses OpenShift Templates and Kustomize, tools that help to automate those necessary file changes. 
