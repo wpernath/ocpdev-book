@@ -1,4 +1,4 @@
-# Chapter Two: Deployment Basics
+# Chapter 2: Deployment Basics
 In this chapter we are going to discuss how the deployment of apps work in Kubernetes and OpenShift, what manifest files are involved, and how to change them so that you can redeploy your application into a new, clean namespace without rebuilding it. 
 
 The chapter also discusses OpenShift Templates and Kustomize, tools that help to automate those necessary file changes. 
@@ -30,6 +30,17 @@ route.route.openshift.io/person-service exposed
 
 Security settings, deployment, image, route and service will be generated for you by OpenShift (and also some OpenShift specific files, such as `ImageStream` or `DeploymentConfig`). These OpenShift conveniences allow you to fully focus on app development. 
 
+In order to let the example start successfully, we have to create a PostgreSQL database server as well. Just execute the following command. We will discuss it later.
+
+```bash
+$> oc new-app postgresql-persistent \
+	-p POSTGRESQL_USER=wanja \
+	-p POSTGRESQL_PASSWORD=wanja \
+	-p POSTGRESQL_DATABASE=wanjadb \
+	-p DATABASE_SERVICE_NAME=wanjaserver
+```
+
+
 ## Basic Kubernetes Files
 So what are the necessary artifacts in an OpenShift app deployment? 
 
@@ -58,7 +69,7 @@ metadata:
 ```
 
 Just pipe the output into a new `.yaml` file and you’re done. You can directly use this file to create your app in a new namespace (except for the image section). But the generated file contains a lot of text you don’t need, so it’s a good idea to pare it down. For example, you can safely remove the  `managedFields` section, big parts of the `metadata` section at the beginning and the `status` section at the end of each file. After stripping the file down to the relevant parts (Image 1), add it to your Git repository.
- ![Image 1: A stripped down deployment.yaml file after exporting it. Note the marked section!](Bildschirmfoto%202021-10-15%20um%2008.38.41.png)
+ ![Image 1: A stripped down deployment.yaml file after exporting it. Note the marked section!][image-1]
 
 Do the same with `Route` and `Service`. That’s all for now. You’re now able to create your app in a new namespace by entering:
 
@@ -79,9 +90,9 @@ This simple example has shown how you can export the manifest files of your app 
 For example, it does not make sense to use the latest image from the `book-dev` namespace in the `book-test` namespace. You’d always have the same version of your application in the development and test environments. To allow the environments to evolve seprately, you have to change the image in the `Deployment` on every stage you’re using. You could obviously do this manually. But let’s find some ways to automate it.
 
 ## YAML Parser (yq)
-To maintain different versions of configuration files, the first tool that most likely pops into your mind is the lightweight command-line YAML parser, [`yq`](https://github.com/mikefarah/yq "YQ"). 
+To maintain different versions of configuration files, the first tool that most likely pops into your mind is the lightweight command-line YAML parser, [`yq`][1]. 
 
-There are many ports available for most operating systems. On macOS, you can  install it via [Homebrew](https://brew.sh "homebrew"):
+There are many ports available for most operating systems. On macOS, you can  install it via [Homebrew][2]:
 
 ```bash
 $> brew install yq
@@ -119,7 +130,7 @@ oc new-project ...
 oc apply -f deployment.yaml 
 ```
 
-More details on this topic can be found in my article [Release Management with OpenShift: Under the hood](https://www.opensourcerers.org/2017/09/19/release-management-with-openshift-under-the-hood/). 
+More details on this topic can be found in my article [Release Management with OpenShift: Under the hood][3]. 
 
 Using a tool such as `yq` seems to be the easiest way to automate the processing of Kubernetes manifest files. However, this process makes you create and maintain a script with each of your projects. It might be the best solution for small teams and small projects, but as soon as you’re responsible for more apps, the demands could easily get out of control. 
 
@@ -128,7 +139,7 @@ So let’s discuss other solutions.
 ## OpenShift Templates
 OpenShift Templates provides an easy way to create a single file out of the required configuration files and add customizable parameters to the unified file. As the name indicates, the service is offered only on OpenShift and is not portable to a generic Kubernetes environment.
  
-![Image 2: An OpenShift Template file](Bildschirmfoto%202021-10-15%20um%2011.45.08.png)
+![Image 2: An OpenShift Template file][image-2]
 
 First, create all the standard configurations shown near the beginning of this chapter (such as `route.yaml`, `deployment.yaml` and `service.yaml`), although you don’t have to separate the configurations into specific files. Next, to create a new template file, open your preferred editor and create a file called `template.yaml` (Image 2). The header of that file should look like this:
 
@@ -190,11 +201,11 @@ template.template.openshift.io/service-template created
 
 Just open the OpenShift web console now, choose the project and click **+Add** and choose the **Developer Catalog**. You should be able to find a template called `service-template` (Image 3). This is the one we’ve created. 
 
-![Image 3: The Developer Catalog after adding the template ](Bildschirmfoto%202021-10-15%20um%2011.28.02.png)
+![Image 3: The Developer Catalog after adding the template ][image-3]
 
 Instantiate the template and fill in the required fields (Image 4). 
 
-![Image 4: Template instantiation with required fields](Bildschirmfoto%202021-10-15%20um%2011.28.45.png)
+![Image 4: Template instantiation with required fields][image-4]
 
 Then click on **Create**. After a short time, you should see the application’s deployment progressing. Once it is finished, you should be able to access the route of the application.
 
@@ -228,7 +239,7 @@ deployment.apps/process-service created
 
 Whatever method you choose to process the template, results show up in your Topology view for the project (Image 5). 
 
-![Image 5: OpenShift UI after using several ways of using the template](Bildschirmfoto%202021-10-15%20um%2011.40.17.png)
+![Image 5: OpenShift UI after using several ways of using the template][image-5]
 
 Creating and maintaining an OpenShift Template is fairly easy. Parameters can be created and set in intuitive ways. I personally like the deep integration into OpenShift’s developer console and the `oc` command. 
 
@@ -543,7 +554,7 @@ Before Kubernetes 1.21 (OpenShift 4.7.x and before) `oc apply -k` does not conta
 $> kustomize build kustomize-ext/overlays/stage | oc apply -f -
 ```
 
-For more information and even more sophisticated examples, have a look at the  [Kustomize home page](https://kustomize.io/) as well as the examples in the official [GitHub.com repository](https://github.com/kubernetes-sigs/kustomize/tree/master/examples).
+For more information and even more sophisticated examples, have a look at the  [Kustomize home page][4] as well as the examples in the official [GitHub.com repository][5].
 
 ### Summary of using Kustomize
 Using Kustomize is quite easy and straightforward. You don’t really have to learn a templating DSL. You just need to understand the processes of patching and merging. Kustomize makes it easy for you as a CI/CD practitioner to separate the configuration of your application for every stage. And because Kustomize is also a Kubernetes subproject and is tightly integrated into Kubernetes’ tools, you don’t have to worry that Kustomize would suddenly disappear.
@@ -556,3 +567,15 @@ In this chapter we have learned how to build an application using OpenShift’s 
 Now you have an understanding of which artifacts need to be taken into account when you want to release your application and how to modify those artifacts to make sure that the new environment is capable of handling your application. 
 
 The next chapter is about Helm Charts and Kubernetes Operators for application packaging and distribution.
+
+[1]:	https://github.com/mikefarah/yq "YQ"
+[2]:	https://brew.sh "homebrew"
+[3]:	https://www.opensourcerers.org/2017/09/19/release-management-with-openshift-under-the-hood/
+[4]:	https://kustomize.io/
+[5]:	https://github.com/kubernetes-sigs/kustomize/tree/master/examples
+
+[image-1]:	Bildschirmfoto%202021-10-15%20um%2008.38.41.png
+[image-2]:	Bildschirmfoto%202021-10-15%20um%2011.45.08.png
+[image-3]:	Bildschirmfoto%202021-10-15%20um%2011.28.02.png
+[image-4]:	Bildschirmfoto%202021-10-15%20um%2011.28.45.png
+[image-5]:	Bildschirmfoto%202021-10-15%20um%2011.40.17.png

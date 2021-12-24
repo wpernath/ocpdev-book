@@ -1,12 +1,12 @@
 # Chapter 4: CI with Tekton Pipelines
 Chapters 2 and 3 of this book discussed the basics of application packaging with Kustomize, Helm Charts, and Operators. They also discussed how to handle images and all the metadata required for working with Kubernetes.
 
-This chapter discusses how to integrate complex tasks, such as building and deploying applications into Kubernetes using [Tekton](https://tekton.dev). Continuous development and continuous integration (CD/CI) are represented in Tekton as *pipelines* that combine all the steps you need to accomplish what you want. And Tekton makes it easy to write a general pipeline that you can adapt to many related tasks.
+This chapter discusses how to integrate complex tasks, such as building and deploying applications into Kubernetes using [Tekton][1]. Continuous development and continuous integration (CD/CI) are represented in Tekton as *pipelines* that combine all the steps you need to accomplish what you want. And Tekton makes it easy to write a general pipeline that you can adapt to many related tasks.
 
 ## Tekton and OpenShift Pipelines
-[Tekton](https://tekton.dev "Tekton Homepage") is an open source framework to create pipelines for Kubernetes and the cloud. This means that there is no central tool you need to maintain such as Jenkins. You just have to install a Kubernetes Operator into your Kubernetes cluster to provide some custom resource definitions (CRDs). Based on those CRDs, you can create tasks and pipelines to compile, test, deploy, and maintain your application.
+[Tekton][2] is an open source framework to create pipelines for Kubernetes and the cloud. This means that there is no central tool you need to maintain such as Jenkins. You just have to install a Kubernetes Operator into your Kubernetes cluster to provide some custom resource definitions (CRDs). Based on those CRDs, you can create tasks and pipelines to compile, test, deploy, and maintain your application.
 
-[OpenShift Pipelines](https://cloud.redhat.com/blog/introducing-openshift-pipelines "Introducing OpenShift Pipelines") is based on Tekton and adds a nice GUI to the OpenShift developer console. The Pipelines Operator is free to use for every OpenShift user.
+[OpenShift Pipelines][3] is based on Tekton and adds a nice GUI to the OpenShift developer console. The Pipelines Operator is free to use for every OpenShift user.
 
 ### Tekton Concepts
 Tekton has numerous objects, but the architecture is quite easy to understand. The key concepts are:
@@ -31,17 +31,17 @@ Please check the official homepage of Tekton to see how to install the tool on o
 
 ### Installing OpenShift Pipelines on Red Hat OpenShift
 
-The process in this chapter requires version 1.4.1 or higher of the OpenShift Pipelines Operator. To install that version, you also need a recent 4.7 OpenShift cluster, which you could install for example via [CodeReady Containers](https://github.com/code-ready/crc)). Without these tools, you won’t have access to workspaces (which you need to define).
+The process in this chapter requires version 1.4.1 or higher of the OpenShift Pipelines Operator. To install that version, you also need a recent 4.7 OpenShift cluster, which you could install for example via [CodeReady Containers][4]). Without these tools, you won’t have access to workspaces (which you need to define).
 
 To install OpenShift Pipelines, you must be cluster-admin. Go to the OperatorHub, search for "pipelines," and click the **Install** button. There is nothing more to do for now, as the Operator maintains everything for you (Figure 1).
 
-![Image 1: Using the OpenShift UI to install OpenShift Pipelines operator](Bildschirmfoto%202021-07-02%20um%2012.20.33.png)
+![Image 1: Using the OpenShift UI to install OpenShift Pipelines operator][image-1]
 
 After a while you’ll notice a new GUI entry in both the Administrator and the Developer UI (Figure 2).
-![Image 2: New UI entries in the OpenShift GUI after you've installed the Pipelines Operator](Bildschirmfoto%202021-07-02%20um%2012.25.29.png)
+![Image 2: New UI entries in the OpenShift GUI after you've installed the Pipelines Operator][image-2]
 
 ## This chapter's example: Create a pipeline for quarkus-simple
-For our well-known [person-service](https://github.com/wpernath/book-example/tree/main/person-service "Quarkus Simple"), we are going to create a Tekton pipeline for a simple deployment task. The pipeline compiles the source, creates a Docker image based on [Jib](https://github.com/GoogleContainerTools/jib "Google's JIB"), pushes the image to [Quay.io](https://quay.io/repository/wpernath/quarkus-simple-wow "quay.io") and uses [kustomize](https://www.opensourcerers.org/2021/04/26/automated-application-packaging-and-distribution-with-openshift-part-12/ "Kustomize explained ") to apply that image to an OpenShift project called `book-tekton`.
+For our well-known [person-service][5], we are going to create a Tekton pipeline for a simple deployment task. The pipeline compiles the source, creates a Docker image based on [Jib][6], pushes the image to [Quay.io][7] and uses [kustomize][8] to apply that image to an OpenShift project called `book-tekton`.
 
 Sounds easy?
 
@@ -59,7 +59,7 @@ In order to stay vendor-independent, we have to use Jib for this use case.
 
 Of course, you could also use other tools to create your container image inside Kubernetes. But in order to keep this Tekton example clean and simple, we are reusing what Quarkus provides. So we are able to simply set a few Quarkus properties in `application.properties` to define how Quarkus should package the application. Now we are able to use exactly *one* Tekton task to compile, package, and push the application to an external registry.
 
->**NOTE**: Make sure that your Quarkus application is using the required Quarkus extension called `container-image-jib`. If your `pom.xml` file does not include the `quarkus-container-image-jib` dependency, add it by executing:
+> **NOTE**: Make sure that your Quarkus application is using the required Quarkus extension called `container-image-jib`. If your `pom.xml` file does not include the `quarkus-container-image-jib` dependency, add it by executing:
 
 ```bash
 $> mvn quarkus:add-extension -Dextensions="container-image-jib"
@@ -81,14 +81,14 @@ $> mvn quarkus:add-extension -Dextensions="container-image-jib"
 ```
 
 Then have a look at Figure 3 to see what properties need to be set to let Quarkus build, package, and push the image. Basically, the following properties need to be set in `application.properties`:
-![Image 3: Application properties of the person-service](quarkus-app-props.png)
+![Image 3: Application properties of the person-service][image-3]
 
 1. `quarkus.container-image.build`: Set this to `true` to ensure that a `mvn package` command a container image.
 2. `quarkus.container-image.push`: This is optional and required only if you want to push the image directly to the registry. I don't intend to do so, so I set the value to `false`.
-3. `quarkus.container-image.builder`: Selects the method of building the container image. We set the value to `jib` to use [Jib](https://github.com/GoogleContainerTools/jib "Google's Jib").
+3. `quarkus.container-image.builder`: Selects the method of building the container image. We set the value to `jib` to use [Jib][9].
 4. `quarkus.container-image.image`: Set this to the complete name of the image to be built, including the domain name.
 
-Now check out the [source code](https://github.com/wpernath/book-example), have a look at `person-service/src/main/resources/application.properties`, change the image property to meet your needs, and issue:
+Now check out the [source code][10], have a look at `person-service/src/main/resources/application.properties`, change the image property to meet your needs, and issue:
 
 ```bash
 $> mvn clean package -DskipTests
@@ -123,7 +123,7 @@ Figure 4 shows all the available ClusterTasks created after you install the Open
 - `maven`
 - `openshift-client`
 
-![Image 4: Available ClusterTasks in OpenShift after installation of pipelines operator](Bildschirmfoto%202021-07-08%20um%2007.41.24.png)
+![Image 4: Available ClusterTasks in OpenShift after installation of pipelines operator][image-4]
 
 We are just missing the `kustomize` task. We'll create one later. We first want to take care of the rest of the tasks.
 
@@ -161,15 +161,15 @@ As a first try, I recommend building the pipeline via the graphical Developer Co
 ### Building the pipeline via OpenShift Developer Console
 Remember that you should have at least version 1.4.1 of the OpenShift Pipelines Operator installed.
 
-![Image 5: Pipeline Builder](Bildschirmfoto%202021-07-13%20um%2015.00.18.png)
+![Image 5: Pipeline Builder][image-5]
 
 You have to provide parameters to each task, and link the required workspaces to the tasks. You can easily do that by using the GUI.
 
-![Image 6:Linking the workspaces from Pipeline to task](DraggedImage.png)
+![Image 6:Linking the workspaces from Pipeline to task][image-6]
 
 We want to use the `maven` task twice, using the `package` goal:
 - To simply compile the source code.
-- To execute the `package` goal with the following parameters that [instruct quarkus to build and push the image](https://quarkus.io/guides/container-image#quarkus-container-image-jib_quarkus.jib.base-jvm-image):
+- To execute the `package` goal with the following parameters that [instruct quarkus to build and push the image][11]:
 	- `-Dquarkus.container-image.push=true`
 	- `-Dquarkus.container-image.builder=jib`
 	- `-Dquarkus.container-image.image=$(params.image-name)`
@@ -204,12 +204,12 @@ One of the goals of Tekton has always been to provide tasks and pipelines that a
 
 If you’re providing the necessary parameters directly to each task, you might repeat the settings over and over again (for example, in our case, we are using the Maven task for compiling, packaging, image generation, and pushing). In this case it makes sense to draw the parameters out of the specification of each task. Put them on the pipeline level under an property called `params` (Figure 7) and reference them inside the corresponding task by specifying them by their name in the syntax `$(params.parameter-name)`.
 
-![Image 7: The pipeline file as exported after using the GUI with top level parameters](Bildschirmfoto%202021-07-19%20um%2009.54.39.png)
+![Image 7: The pipeline file as exported after using the GUI with top level parameters][image-7]
 
 ### Creating a new task: kustomize
-Remember that our default OpenShift Pipelines Operator installation didn't include Kustomize. Because we want to use it to apply the new image to our Deployment, we have to look for a proper task in [Tekton Hub](https://hub.tekton.dev). Unfortunately, there doesn’t seem to be one available, so we have to create our own.
+Remember that our default OpenShift Pipelines Operator installation didn't include Kustomize. Because we want to use it to apply the new image to our Deployment, we have to look for a proper task in [Tekton Hub][12]. Unfortunately, there doesn’t seem to be one available, so we have to create our own.
 
-For this, we first need to have a proper image which contains the `kustomize` executable. The Dockerfile for this project is available in the [kustomize-ubi repository on GitHub](https://github.com/wpernath/kustomize-ubi) and the image is available in [its repository on Quay.io](https://quay.io/repository/wpernath/kustomize-ubi).
+For this, we first need to have a proper image which contains the `kustomize` executable. The Dockerfile for this project is available in the [kustomize-ubi repository on GitHub][13] and the image is available in [its repository on Quay.io][14].
 
 Now let’s create a new Tekton task:
 
@@ -311,7 +311,7 @@ This file reserves a PVC with the name `builder-pvc` and a requested storage of 
 
 ## Running the pipeline
 Once you have imported all your artifacts into your current project, you can run the pipeline. To do so, click on the **Pipelines** entry on the left side of the Developer Perspective of OpenShift, choose your created pipeline, and select **Start** from the **Actions** menu on the right side. After you’ve filled in all necessary parameters (Figure 8), you’re able to start the PipelineRun.
-![Image 8: Starting the pipeline with all parameters](pipeline-run.png)
+![Image 8: Starting the pipeline with all parameters][image-8]
 
 The **Logs** and **Events** cards of the OpenShift Pipeline Editor show, well, all the logs and events. If you prefer to view these things from the command line, use `tkn` to follow the logs of the PipelineRun:
 
@@ -393,11 +393,11 @@ On your developer machine, Maven uses the `$HOME/.m2` folder as a cache for the 
 
 Maven allows us to specify `-Dmaven.repo.local` to provide a different path to a local cache. This option is what we can use to solve our problem.
 
-I have created a new Maven task (`maven-caching`), which you can find in the [book's example repository](https://raw.githubusercontent.com/wpernath/book-example/main/tekton/tasks/maven-task.yaml). The file was originally just a copy of the one that came from Tekton Hub. But then I decided to remove the init step, which was building a `maven-settings.xml` file based on some input parameters. Instead, I removed most of the parameters and added a MUST-HAVE `maven-settings` ConfigMap. I believe this makes everything much easier.
+I have created a new Maven task (`maven-caching`), which you can find in the [book's example repository][15]. The file was originally just a copy of the one that came from Tekton Hub. But then I decided to remove the init step, which was building a `maven-settings.xml` file based on some input parameters. Instead, I removed most of the parameters and added a MUST-HAVE `maven-settings` ConfigMap. I believe this makes everything much easier.
 
 As Figure 9 shows, we now have only two parameters: `GOALS` and `CONTEXT_DIR`.
 
-![Image 9: Simplified Maven task](Bildschirmfoto%202021-07-20%20um%2011.30.29.png)
+![Image 9: Simplified Maven task][image-9]
 
 The important setting for the `maven` call is shown in the second red box of Figure 9. It simply calls `maven` with the `maven-settings` property and with the parameter indicating where to store the downloaded artifacts.
 
@@ -423,6 +423,33 @@ And even if you’re not satisfied with all the tasks you get from Tekton Hub, u
 
 I would not say that Tekton is the easiest technology available to do CI/CD pipelines, but it is definitely one of the most flexible.
 
-However, we have not even talked about [Tekton security](https://tekton.dev/docs/pipelines/auth/) and how we are able to provide, for example, Secrets to access your Git repository or the image repository. And we have cheated a little bit about image generation, because we were using the mechanism Quarkus provides. There are other ways of creating images with a dedicated Buildah task.
+However, we have not even talked about [Tekton security][16] and how we are able to provide, for example, Secrets to access your Git repository or the image repository. And we have cheated a little bit about image generation, because we were using the mechanism Quarkus provides. There are other ways of creating images with a dedicated Buildah task.
 
 The next chapter of this book discusses Tekton security, as well as GitOps and Argo CD.
+
+[1]:	https://tekton.dev
+[2]:	https://tekton.dev "Tekton Homepage"
+[3]:	https://cloud.redhat.com/blog/introducing-openshift-pipelines "Introducing OpenShift Pipelines"
+[4]:	https://github.com/code-ready/crc
+[5]:	https://github.com/wpernath/book-example/tree/main/person-service "Quarkus Simple"
+[6]:	https://github.com/GoogleContainerTools/jib "Google's JIB"
+[7]:	https://quay.io/repository/wpernath/quarkus-simple-wow "quay.io"
+[8]:	https://www.opensourcerers.org/2021/04/26/automated-application-packaging-and-distribution-with-openshift-part-12/ "Kustomize explained "
+[9]:	https://github.com/GoogleContainerTools/jib "Google's Jib"
+[10]:	https://github.com/wpernath/book-example
+[11]:	https://quarkus.io/guides/container-image#quarkus-container-image-jib_quarkus.jib.base-jvm-image
+[12]:	https://hub.tekton.dev
+[13]:	https://github.com/wpernath/kustomize-ubi
+[14]:	https://quay.io/repository/wpernath/kustomize-ubi
+[15]:	https://raw.githubusercontent.com/wpernath/book-example/main/tekton/tasks/maven-task.yaml
+[16]:	https://tekton.dev/docs/pipelines/auth/
+
+[image-1]:	Bildschirmfoto%202021-07-02%20um%2012.20.33.png
+[image-2]:	Bildschirmfoto%202021-07-02%20um%2012.25.29.png
+[image-3]:	quarkus-app-props.png
+[image-4]:	Bildschirmfoto%202021-07-08%20um%2007.41.24.png
+[image-5]:	Bildschirmfoto%202021-07-13%20um%2015.00.18.png
+[image-6]:	DraggedImage.png
+[image-7]:	Bildschirmfoto%202021-07-19%20um%2009.54.39.png
+[image-8]:	pipeline-run.png
+[image-9]:	Bildschirmfoto%202021-07-20%20um%2011.30.29.png
