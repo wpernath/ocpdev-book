@@ -6,7 +6,7 @@ I can imagine a reader complaining, "We are still struggling to implement DevOps
 
 The short answer is: DevOps is a cultural change in your enterprise, meaning that Developers and Operations people should talk to each other instead of doing their work secretly behind big walls.
 
-GitOps is an evolutionary way of implementing continuous deployments for the cloud and Kubernetes. The idea behind Gitops is to use the same version control system you're using for your code to store formal descriptions of the infrastructure desired in the test or production environment. These descriptions can be updated as the needs of the environment change, and can be managed through version control just like source code. You automatically gain a history of all the deployments you've done. After each change, an automated process runs (either through a manual step or through automation) to make the production environment match the desired state. The term "healing" is often applied to the process that brings the actual state of the system in sync with the desired state.
+GitOps is an evolutionary way of implementing continuous deployments for the cloud and Kubernetes. The idea behind GitOps is to use the same version control system you're using for your code to store formal descriptions of the infrastructure desired in the test or production environment. These descriptions can be updated as the needs of the environment change, and can be managed through version control just like source code. You automatically gain a history of all the deployments you've done. After each change, an automated process runs (either through a manual step or through automation) to make the production environment match the desired state. The term "healing" is often applied to the process that brings the actual state of the system in sync with the desired state.
 
 ### Motivation Behind GitOps
 But why Git? And why now? And what does Kubernetes has to do with all that?
@@ -48,17 +48,14 @@ A `default` project is created in ArgoCD and contains reasonable defaults.
 Once the application is registered, you can manually start a sync to update the actual environment. Alternatively, Argo CD starts "healing" the application automatically, if the synchronization policy is set to do so.
 
 ## The Use Case: Implementing GitOps for our Quarkus-Simple App
-
 We've been using the [person service][2] over the course of this book. Let's continue to use it and create a GitOps workflow for it. You can find all the resources discussed here in the `gitops` folder within the `book-example` repository on GitHub.
 
-**AO: The first link below points to Red Hat OpenShift GitOps release notes. I don't think that's the best link to go to about the Operator. The current release notes don't mention the Operator. The page links to a page about Operators, but that page doesn't include GitOps! I suggest you point here to the same URL you use later, https://docs.openshift.com/container-platform/4.8/cicd/gitops/installing-openshift-gitops.html.**
-
-We are going to set up Argo CD (via the [OpenShift GitOps Operator][3]) on OpenShift 4.8 (via [Red Hat CodeReady Containers][4]). We are going to use [Tekton to build a pipeline][5], which updates the [person-simple-config](https://github.com/wpernath/quarkus-simple-config) Git repository with the latest image digest of the build. Argo CD should then detect the changes and should start a synchronization of our application.
+We are going to set up Argo CD (via the [OpenShift GitOps Operator][3]) on OpenShift 4.8 (via [Red Hat CodeReady Containers][4]). We are going to use [Tekton to build a pipeline][5], which updates the [person-service-config][6] Git repository with the latest image digest of the build. Argo CD should then detect the changes and should start a synchronization of our application.
 
 **NOTE**: Typically, a GitOps pipeline does not directly push changes into the main branch of a configuration repository. Instead, the pipeline should commit into a feature branch or release branch and should create a pull request, so that committers can review changes before they are merged to the main branch.
 
 ## The Application Configuration Repository
-First of all, let's create a new repository for our application configuration (`person-simple-config`).
+First of all, let's create a new repository for our application configuration (`person-service-config`).
 
 One of the main concepts behind GitOps is to represent your the configuration and build parameters of your application as a Git repository. This  repository could either be part of the source code repository or separate. As I am a big fan of [*separation of concerns*][7], we will create a new repository containing [artifacts that we built in earlier chapters using Kustomize][8]:
 
@@ -98,14 +95,12 @@ For now, create this configuration repository by copying the files from the `boo
 **NOTE**: The original `kustomization.yaml` file already contains an image section. This should be removed first.
 
 ## Installing the OpenShift GitOps Operator
-
 Because the OpenShift GitOps Operator is offered free of charge to OpenShift users and comes quite well preconfigured, I am focusing on its use. If you want to bypass the Operator and dig into Argo CD installation, please feel free to have a look at the official [guides][9].
 
 The [OpenShift GitOps Operator can easily be installed in OpenShift][10]. Just log in as a user with cluster-admin rights and switch to the **Administrator** perspective of the OpenShift console. Then go to the **Operators** menu entry and select **OperatorHub** (Image 2). In the search field, start typing "gitops" and select the GitOps Operator when its panel is shown.
 
-![Image 2: Installing the OpenShift GitOps Operator][image- 2]
-
-Once the Operator is installed, it creates a new newspace called `openshift-gitops` where an instance of Argo CD is installed and ready to be used.
+![Image 2: Installing the OpenShift GitOps Operator][image-2]
+Once the Operator is installed, it creates a new namespace called `openshift-gitops` where an instance of Argo CD is installed and ready to be used.
 
 At of time of this writing, Argo CD is not yet configured to use OpenShift authentication, so you have to get the password of the admin user by getting the value of the Secret `openshift-gitops-cluster` in namespace `openshift-gitops`:
 
@@ -118,28 +113,32 @@ And this is how to get the URL of your Argo CD instance:
 ```bash
 $> oc get route openshift-gitops-server -ojsonpath='{.spec.host}' -n openshift-gitops
 ```
+
 ## Creating a New Argo Application
 The easiest way to create a new Argo application is by using the GUI provided by Argo CD (Image 3).
 
-![Image 3: Argo CD on OpenShift][image- 3]
+![Image 3: Argo CD on OpenShift][image-3]
 
 Go to the URL and login using `admin` as the user and the password you get as described above. Click **New App** and fill in the required fields shown in Image 4, as follows:
 
-1. Application Name: We'll use `quarkus-simple', the same name as our repository.
+1. Application Name: We'll use `book-dev`, the same name as our repository.
 2. Project: In our case it's `default`, which was created during Argo CD installation.
-3. Syn Policy: Choose wether you want automatic synchronization, which is enabled by the **SELF HEAL** option.
+3. Sync Policy: Choose wether you want automatic synchronization, which is enabled by the **SELF HEAL** option.
 4. Repository URL: Specify your directory with the application metadata (Kubernetes resources).
 5. Path: This specifies the subdirectory within the repository that points to the actual files.
-6. Cluster URL: Specify your Kubernetes instance. **AO: I'm not sure how to describe it.**
+6. Cluster URL: Specify your Kubernetes instance. 
 7. Namespace: The OpenShift of Kubernetes namespace to deploy to.
+
+![Image 4: Creating a new App in ArgoCD][image-4]
 
 After filling out the fields, click **Create**. All Argo CD objects of the default Argo CD instance will be stored in the namespace `openshift-gitops`, from where you can export them via:
 
 ```bash
-$> oc get Application/book-dev -o yaml -n openshift-gitops
+$> oc get Application/book-dev -o yaml -n openshift-gitops > book-dev-app.yaml
 ```
 
-To create an application object in a new Kubernetes instance, open the `quarkus-simple-app.yaml` file exported by the previous command in your preferred editor:
+To create an application object in a new Kubernetes instance, open the `book-dev-app.yaml` file exported by the previous command in your preferred editor:
+
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -173,7 +172,7 @@ $> oc apply -f book-dev-app.yaml -n openshift-gitops
 
 Now import the application into the predefined Argo CD instance. Please note that you have to import the application into the `openshift-gitops` namespace. Otherwise it won’t be recognized by the default Argo CD instance running after you’ve installed the OpenShift GitOps operator.
 
-**AO: If the reader didn't choose automatic synchronization, they need to press **Sync**. I'd like some reorganization in the following section. If the reader chose automatic sync, I can understand that they'll immediate trigger the error. But you could also explain why the add-role-to-user command is needed, run it, then tell the reader to press **Sync**. However, you can say that the error will appear if they use automatic sync. Is there a way to avoid the error?**
+**AO: If the reader didn't choose automatic synchronization, they need to press **Sync**. I'd like some reorganization in the following section. If the reader chose automatic sync, I can understand that they'll immediate trigger the error. But you could also explain why the add-role-to-user command is needed, run it, then tell the reader to press **Sync**. However, you can say that the error will appear if they use automatic sync. Is there a way to avoid the error?**
 
 ## First Synchronization
 You might notice that the first synchronization takes quite a while and breaks without doing anything except to issue an error message (Image 5).
@@ -226,7 +225,7 @@ In GitOps, we don’t do pipeline centric deployments anymore. In fact, the fina
 The current pipeline is a development pipeline, which will be used to:
 1. Compile and test the code.
 2. Create a new image.
-3. Push that image to an external registry (in our case [Quay.io][11])).
+3. Push that image to an external registry (in our case [Quay.io][12])).
 4. Use Kustomize to change the image target.
 5. Apply the changes via the OpenShift CLI to a given namespace.
 
@@ -234,7 +233,7 @@ In GitOps, we don't do pipeline-centric deployments anymore. As explained earlie
 
 ### A Word On Tekton Security
 
-Because we want to update a private repository, we first need to have a look at [Tekton authentication][12]. Tekton uses specially annotated Secrets with either a *username*/*password* combination or an SSH key. The authentication then produces a `~/.gitconfig` file (or, in case of an image repository, a `~/.docker/config.json` file) and maps it into the step's pod via the run's associated ServiceAccount. That's easy, isn't it? Configuring the process looks like:
+Because we want to update a private repository, we first need to have a look at [Tekton authentication][13]. Tekton uses specially annotated Secrets with either a *username*/*password* combination or an SSH key. The authentication then produces a `~/.gitconfig` file (or, in case of an image repository, a `~/.docker/config.json` file) and maps it into the step's pod via the run's associated ServiceAccount. That's easy, isn't it? Configuring the process looks like:
 
 ```yaml
 apiVersion: v1
@@ -364,9 +363,9 @@ Let's have a look at the steps within the task:
 Nothing special here. It's the same things we would do via the CLI. The full task and everything related can be found, as always, in the `gitops/tekton/tasks` folder of the repository on GitHub.
 
 ### Creating an extract-digest Tekton Task
-The next question is how to get the image digest. Because we are using the [Quarkus image builder][13] (which in turn is using [Jib][14]), we need to create either a step or a separate task that provides content to create a `target/jib-image.digest` file. **AO: I don't see why it's relevant here to mention the Quarkus image builder or Jib. Could you omit the step of getting the digest if you used other tools?**
+The next question is how to get the image digest. Because we are using the [Quarkus image builder][14] (which in turn is using [Jib][15]), we need to create either a step or a separate task that provides content to create a `target/jib-image.digest` file. **AO: I don't see why it's relevant here to mention the Quarkus image builder or Jib. Could you omit the step of getting the digest if you used other tools?**
 
-Because I want to have the `git-update-deployment` task as general-purpose as possible, I have created a separate task that does just this step. The step relies on a Tekton feature known as [emitting results from a task][15].
+Because I want to have the `git-update-deployment` task as general-purpose as possible, I have created a separate task that does just this step. The step relies on a Tekton feature known as [emitting results from a task][16].
 
 Within the `spec` section of a task, you can define a `results` property. Each result is stored in `$(results.<result-name>.path)`, where the `<result-name>` component is a string that refers to the data in that result. Results are available in all tasks and on the pipeline level through strings in the format:
 
@@ -400,7 +399,7 @@ spec:
 Now it's time to summarize everything in a new pipeline. Image 8 shows the tasks. The first three are the same as in the Chapter 4 version of this pipeline. We have added the `extract-digest` step as described in the previous section, and end by updating our repository.
 ![Image 8: The gitops-pipeline][image-8]
 
-Start by using the [previous non-GitOps pipeline][16], which we created in Chapter 4. Remove the last task and add `extract-digest` and `git-update-deployment` as new tasks.
+Start by using the [previous non-GitOps pipeline][17], which we created in Chapter 4. Remove the last task and add `extract-digest` and `git-update-deployment` as new tasks.
 
 Add a new `git-clone` task at the beginning by hovering over `clone-source` and pressing the plus sign below it to create a new parallel task. Name the new task `clone-config` and fill in the necessary parameters:
 
@@ -459,7 +458,7 @@ $> ./pipeline.sh stage -r 1.0.0-beta1
 ```
 
 ### Setup of the Pipeline
-The `git-clone` and `git-branch` steps use existing ClusterTasks, so there is nothing to explain here except one new Tekton feature: [Conditional execution of a task][17] by using a "When" expression.
+The `git-clone` and `git-branch` steps use existing ClusterTasks, so there is nothing to explain here except one new Tekton feature: [Conditional execution of a task][18] by using a "When" expression.
 
 In our case, if a `release-name` is specified, only the `git-branch` task should be executed. The corresponding YAML code in the pipeline looks like:
 
@@ -548,7 +547,7 @@ Although order-dependent deployments are not necessarily a best practice, the re
 - Before my app can start, I must have a properly installed and configured database.
 - Before I can install an instance of a Kafka service, an Operator must be installed on Kubernetes.
 
-Fortunately, Argo CD has a solution for those scenarios. Like with Helm Charts, you're able to define [sync phases and so called *waves*][18].
+Fortunately, Argo CD has a solution for those scenarios. Like with Helm Charts, you're able to define [sync phases and so called *waves*][19].
 
 Argo CD defines three sync phases:
 - **PreSync**: Before the synchronization starts
@@ -574,7 +573,7 @@ However, the preferred way of installing applications with Kubernetes is to thro
 
 If this declaration is not enough, you have to provide a script to configure a special resource—for example, updating the structure of a database or doing a backup of the data first.
 
-As mentioned earlier, Argo CD manages synchronization via phases and [executes resource hooks][19] when necessary. So you can define a presync hook to execute a database schema migration or fill the database with test data. You might create a postsync hook to do some tiding or health checks.
+As mentioned earlier, Argo CD manages synchronization via phases and [executes resource hooks][20] when necessary. So you can define a presync hook to execute a database schema migration or fill the database with test data. You might create a postsync hook to do some tiding or health checks.
 
 Let's create such a hook:
 
@@ -642,12 +641,12 @@ If you want to use a single configuration Git repository for all your applicatio
 ### Managing Secrets
 Another important task requiring a lot of thought is proper Secret management. A Secret contains access tokens to mission-critical external applications, such as databases, SAP systems, or in our case GitHub and Quay.io). You don't want to make that confidential informations publicly accessible in a Git repository.
 
-Instead, think about a solution like [Hashicorp Vault][20], where you are able to centrally manage your Secrets.
+Instead, think about a solution like [Hashicorp Vault][21], where you are able to centrally manage your Secrets.
 
 ## Summary
 The desire to automatically deploy the latest code into production is as old as information technology, I suppose. Automation *is* important, as it makes everybody in the release chain more productive and helps to create reproducible and well-documented deployments.
 
-There are many ideas and even more tools out there for how to implement automation. The easiest way, of course, is to create scripts for deployment that do exactly what you need. The downside of this is that scripts might become unmanageable after some time. *AO: You also tend to do a lot of copying, and then if you want to make a change you need to find and correct each script.**
+There are many ideas and even more tools out there for how to implement automation. The easiest way, of course, is to create scripts for deployment that do exactly what you need. The downside of this is that scripts might become unmanageable after some time. *AO: You also tend to do a lot of copying, and then if you want to make a change you need to find and correct each script.*\*
 
 With Kubernetes and GitOps, you can define everything as a file, which helps you store everything in a Version control system and use the conveniences it provides.
 
@@ -661,29 +660,30 @@ Other benefits of using Git include:
 
 [1]:	https://argoproj.github.io/argo-cd/
 [2]:	https://github.com/wpernath/book-example/tree/main/person-service "Person Service"
-[3]:	https://docs.openshift.com/container-platform/4.8/cicd/gitops/gitops-release-notes.html
+[3]:	https://docs.openshift.com/container-platform/4.8/cicd/gitops/installing-openshift-gitops.html
 [4]:	https://github.com/code-ready/crc
 [5]:	https://www.opensourcerers.org/2021/07/26/automated-application-packaging-and-distribution-with-openshift-tekton-pipelines-part-34-2/
-[6]:	https://github.com/wpernath/quarkus-simple-config
+[6]:	https://github.com/wpernath/person-service-config
 [7]:	https://deviq.com/principles/separation-of-concerns
 [8]:	https://www.opensourcerers.org/2021/04/26/automated-application-packaging-and-distribution-with-openshift-part-12/
 [9]:	https://argo-cd.readthedocs.io/en/latest/getting_started/
 [10]:	https://docs.openshift.com/container-platform/4.8/cicd/gitops/installing-openshift-gitops.html
 [11]:	https://quay.io
-[12]:	https://tekton.dev/docs/pipelines/auth/
-[13]:	https://www.opensourcerers.org/2021/07/26/automated-application-packaging-and-distribution-with-openshift-tekton-pipelines-part-34-2/
-[14]:	https://cloud.google.com/blog/products/application-development/introducing-jib-build-java-docker-images-better
-[15]:	https://tekton.dev/docs/pipelines/tasks/#emitting-results
-[16]:	https://raw.githubusercontent.com/wpernath/book-example/main/tekton/pipelines/tekton-pipeline.yaml
-[17]:	https://tekton.dev/docs/pipelines/pipelines/#guard-task-execution-using-whenexpressions
-[18]:	https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/
-[19]:	https://argo-cd.readthedocs.io/en/stable/user-guide/resource_hooks/
-[20]:	https://www.hashicorp.com/products/vault/secrets-management
+[12]:	https://quay.io
+[13]:	https://tekton.dev/docs/pipelines/auth/
+[14]:	https://www.opensourcerers.org/2021/07/26/automated-application-packaging-and-distribution-with-openshift-tekton-pipelines-part-34-2/
+[15]:	https://cloud.google.com/blog/products/application-development/introducing-jib-build-java-docker-images-better
+[16]:	https://tekton.dev/docs/pipelines/tasks/#emitting-results
+[17]:	https://raw.githubusercontent.com/wpernath/book-example/main/tekton/pipelines/tekton-pipeline.yaml
+[18]:	https://tekton.dev/docs/pipelines/pipelines/#guard-task-execution-using-whenexpressions
+[19]:	https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/
+[20]:	https://argo-cd.readthedocs.io/en/stable/user-guide/resource_hooks/
+[21]:	https://www.hashicorp.com/products/vault/secrets-management
 
 [image-1]:	gitops-delivery-chain.png
-[image-2]:	install-gitops-operator.png
-[image-3]:	argocd-on-openshift.png
-[image-4]:	argocd-new-app.png
+[image-2]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/install-gitops-operator.png
+[image-3]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/argocd-on-openshift.png
+[image-4]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/argocd-new-app.png
 [image-5]:	argocd-sync-failed.png
 [image-6]:	argocd-sync-success.png
 [image-7]:	tekton-non-gitops-pipeline.png

@@ -4,11 +4,11 @@ I have to say, I like Quarkus. I have been coding for over two decades with Java
 And then back in 2020 when I thought, there is nothing out there which could really positively surprise me, I had a look at Quarkus. This is my personal story about Quarkus. 
 
 ## The use case
-For [my other blogs][1] I needed a quick example to deploy it to OpenShift, so I decided to create a simple REST CRUD service with a PostgreSQL database. As it should just be a demonstration, I am not using any relations but a simple person table to store famous singers.
+For the other chapters in this book, we need a good example to demonstrate the power of working with Kubernetes and OpenShift. So let’s create a REST based micro service which reads and writes data from/into a database. 
 
-But let me describe why I felt in love with Quarkus.
+This chapter is all about creating the micro service with Quarkus. If you want to understand more about Quarkus, feel free to get one of the other books available on the [Red Hat developers page][1]. 
 
-## First steps 
+## First steps
 [Quarkus][2] has a [Get Started ][3]page. Go there to have a look how to install the command line tool called `quarkus`. 
 
 After you’ve installed the quarkus tool, simply create a new project by executing:
@@ -189,7 +189,7 @@ Looking for the newly published extensions in registry.quarkus.io
 [SUCCESS] ✅  Extension io.quarkus:quarkus-jdbc-postgresql has been installed
 ```
 
-This call installs a JDBC driver for postgresql and everything to be used for ORM. 
+This call installs a JDBC driver for PostgreSQL and everything to be used for ORM. 
 
 The next step is to create an entity. Let’s call that entity `Person`, so you’re going to create a `Person.java` file. 
 
@@ -213,7 +213,7 @@ public class Person extends PanacheEntity {
 }
 ```
 
-Well, according to the docs, this should be the Person entity, which maps directly to a table `person` in our PostgreSQL database. All public properties will be mapped 1:1 to the corresponding entity in the database. If you don’t want that, you need to specify the `@Transient` annotation. That can’t be that easy, can it?
+Well, according to the docs, this should be the Person entity, which maps directly to a table `person` in our PostgreSQL database. All public properties will be mapped automatically to the corresponding entity in the database. If you don’t want that, you need to specify the `@Transient` annotation. That can’t be that easy, can it?
 
 You also need a `PersonResource` class which acts as REST endpoint. Let’s create such a simple class:
 
@@ -499,7 +499,7 @@ quarkus.datasource.db-kind=postgresql
 %prod.quarkus.datasource.jdbc.url=jdbc:postgresql://${DB_HOST}/${DB_DATABASE}
 ```
 
-Quarkus also supports the usage of [Property Expressions][10]. For instance, if your application is running on Kubernetes, you might want to specify datasource username and password via a Secret. In this case, simply use the format `${PROP_NAME}`. Those expressions will be evaluated when they are read. The property names are either specified within the `application.properties` file or could be coming from environment variables.
+Quarkus also supports the usage of [Property Expressions][10]. For instance, if your application is running on Kubernetes, you might want to specify the  datasource username and password via a Secret. In this case, simply use the format `${PROP_NAME}`. Those expressions will be evaluated when they are read. The property names are either specified within the `application.properties` file or could be coming from environment variables.
 
 Now your application is [prepared for CI/CD][11] and also for going into production. 
 
@@ -637,7 +637,9 @@ Minimizing the amount of boilerplate code makes your app easier to maintain - an
 
 This is why I fell in love with Quarkus. 
 
-[1]:	https://www.opensourcerers.org/2021/04/26/automated-application-packaging-and-distribution-with-openshift-basic-development-principles-part-14/
+Now let’s have a deeper look into working with Images on Kubernetes and OpenShift. 
+
+[1]:	https://developers.redhat.com/e-books
 [2]:	https://quarkus.io
 [3]:	https://quarkus.io/get-started/
 [4]:	https://httpie.io
