@@ -1,5 +1,6 @@
-# ocpdev-book
-This is a repository with all the sources for the Book "GitOps with OpenShift from Scratch - Open source CI/CD with OpenShift, ArgoCD and Tekton"
+# GitOps with OpenShift from Scratch
+
+This is a repository with all the sources for the Book "GitOps with OpenShift from Scratch - Open source CI/CD with OpenShift, ArgoCD and Tekton". 
 
 # Status of the chapters
 
@@ -13,3 +14,4 @@ This is a repository with all the sources for the Book "GitOps with OpenShift fr
 |Chapter 3 | FINAL REVIEW|
 |Chapter 4 | FINAL REVIEW|
 |Chapter 5 | FINAL REVIEW|
+|Thank You | To be written|
