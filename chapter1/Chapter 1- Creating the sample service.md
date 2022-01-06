@@ -1,17 +1,16 @@
 # Chapter 1: Creating the sample service
-I have to say, I like Quarkus. I have been coding for over two decades with Java and JEE. I have been using most of the frameworks out there (does anyone remember Struts or JBoss Seam or SilverStream?). I’ve even created code generators to make my life easier with EJBs (1.x and 2.x). But all of those frameworks and ideas had one thing in common: they tried to minimize the efforts for the developers but they had other drawbacks.
+This books needs a good example to demonstrate the power of working with Kubernetes and OpenShift. As an application that will be familiar and useful to most readers, we’ll create a REST-based microservice in Java that reads data from and writes data to a database.
 
-And then back in 2020 when I thought, there is nothing out there which could really positively surprise me, I had a look at Quarkus. This is my personal story about Quarkus. 
+I have to say, I like [Quarkus][1]. I have been coding for over two decades with Java and JEE. I have been using most of the frameworks out there (does anyone remember Struts or JBoss Seam or SilverStream?). I’ve even created code generators to make my life easier with EJBs (1.x and 2.x). But all of those frameworks and ideas had one thing in common: they tried to minimize the efforts for the developers but they had other drawbacks.
 
-## The use case
-For the other chapters in this book, we need a good example to demonstrate the power of working with Kubernetes and OpenShift. So let’s create a REST based micro service which reads and writes data from/into a database. 
+And then back in 2020 when I thought, there is nothing out there which could really positively surprise me, I had a look at Quarkus. This is my personal story about Quarkus.
 
-This chapter is all about creating the micro service with Quarkus. If you want to understand more about Quarkus, feel free to get one of the other books available on the [Red Hat developers page][1]. 
+So this chapter is all about creating a microservice with Quarkus. If you want to understand more about Quarkus, feel free to get one of the other books available on the [Red Hat developers page][2]. **(AO: Currently, there seems to be only one book on the topic, which I happened also to edit: https://developers.redhat.com/e-books/quarkus-spring-developers. So maybe you should just point to it.)**
 
 ## First steps
-[Quarkus][2] has a [Get Started ][3]page. Go there to have a look how to install the command line tool called `quarkus`. 
+Quarkus has a [Get Started][3]page. Go there to have a look at how to install the command line tool, which is called `quarkus`.
 
-After you’ve installed the quarkus tool, simply create a new project by executing:
+After you’ve installed the `quarkus` tool, create a new project by executing:
 
 ```bash
 $> quarkus create app org.wanja.demo:person-service:1.0.0
@@ -45,21 +44,21 @@ $> tree
 ├── pom.xml
 └── src
     ├── main
-    │   ├── docker
-    │   │   ├── Dockerfile.jvm
-    │   │   ├── Dockerfile.legacy-jar
-    │   │   ├── Dockerfile.native
-    │   │   └── Dockerfile.native-distroless
-    │   ├── java
-    │   │   └── org
-    │   │       └── wanja
-    │   │           └── demo
-    │   │               └── GreetingResource.java
-    │   └── resources
-    │       ├── META-INF
-    │       │   └── resources
-    │       │       └── index.html
-    │       └── application.properties
+    │   ├── docker
+    │   │   ├── Dockerfile.jvm
+    │   │   ├── Dockerfile.legacy-jar
+    │   │   ├── Dockerfile.native
+    │   │   └── Dockerfile.native-distroless
+    │   ├── java
+    │   │   └── org
+    │   │       └── wanja
+    │   │           └── demo
+    │   │               └── GreetingResource.java
+    │   └── resources
+    │       ├── META-INF
+    │       │   └── resources
+    │       │       └── index.html
+    │       └── application.properties
     └── test
         └── java
             └── org
@@ -71,19 +70,19 @@ $> tree
 15 directories, 13 files
 ```
 
-If you want to test what you have done so far, simply call
+If you want to test what you have done so far, call:
 ```bash
 $> mvn quarkus:dev
 ```
 
-Or if you prefer to use the Quarkus CLI tool, you can also call
+Or if you prefer to use the Quarkus CLI tool, you can also call:
 ```bash
 $> quarkus dev
 ```
 
-This compiles all sources and starts the development mode of your project, where you don’t need to specify any runtime environment (Tomcat, JBoss…). 
+This compiles all sources and starts the development mode of your project, where you don’t need to specify any runtime environment (Tomcat, JBoss, etc.).
 
-Let’s have a look at the generated `GreetingResource.java` which you can find under `src/main/java/org/wanja/demo`:
+Let’s have a look at the generated `GreetingResource.java` file, which you can find under `src/main/java/org/wanja/demo`:
 
 ```java
 package org.wanja.demo;
@@ -104,7 +103,7 @@ public class GreetingResource {
 }
 ```
 
-So it seems, if `quarkus:dev` is running, we should have an endpoint under `localhost:8080/hello`. Let’s have a look. For testing of REST endpoints, you can either use `curl` or the much newer client called [httpie][4]. I prefer to use the newer one. 
+So it seems that, if `quarkus:dev` is running, you should have an endpoint reachable at `localhost:8080/hello` in a browser on that system. Let’s have a look. For testing of REST endpoints, you can use either `curl` or the much newer client called [httpie][4]. I prefer to the newer one:
 
 ```bash
 $> http :8080/hello
@@ -115,9 +114,9 @@ content-length: 14
 Hello RESTEasy
 ```
 
-This was easy. But still nothing really new. Let’s get a little bit deeper. 
+This was easy. But still nothing really new. Let’s go a little bit deeper.
 
-Let’s change the string `Hello RESTEasy` into something new and call the service again (of course without restarting `quarkus dev`).
+Let’s change the string `Hello RESTEasy` into something new and call the service again (but without restarting `quarkus dev`—that’s a key point to make).
 
 ```bash
 $> http :8080/hello
@@ -128,15 +127,15 @@ content-length: 7
 Hi Yay!
 ```
 
-OK, so this is getting interesting now. You don’t have to recompile or restart Quarkus to see your changes in action. Let’s have a look at [configuring our application][5], because we don’t want to use hard-coded strings. 
+OK, this is getting interesting now. You don’t have to recompile or restart Quarkus to see your changes in action. Let’s have a look at the [Quarkus documentatio about configuring your application][5], because we don’t want to use hard-coded strings.
 
-For this open  `src/main/resources/application.properties` in your preferred editor and create a new property. For example:
+To reconfigure the application, open  `src/main/resources/application.properties` in your preferred editor and create a new property. For example:
 
 ```bash
 app.greeting=Hello, dear quarkus developer!
 ```
 
-And then go into the GreetingResource and create a new property on class level:
+And then go into the GreetingResource and create a new property on the class level:
 
 ```java
 package org.wanja.demo;
@@ -173,14 +172,14 @@ content-length: 25
 Hello, quarkus developer!
 ```
 
-Again, we haven’t recompiled or restarted the services. Quarkus is watching for any changes in the source tree and takes the required actions automatically. 
+Again, you haven’t recompiled or restarted the services. Quarkus is watching for any changes in the source tree and takes the required actions automatically. **(AO: Because we talk about "healing" later in Chapter 5, it might be worth introducing that term here. But it also might confuse the reader.)**
 
 This is already great. Really. But let’s move on.
 
 ## Creating a database client
-The use case should not be about a simple hello service. We want to have a database client, which reads and writes from / into a database. After [reading the corresponding docs][6], I decided to use Panache here, as it seems to reduce the work I have to do dramatically.
+The use case for this book should not be a simple hello service. We want to have a database client that reads from writes and to a database. After [reading the corresponding documentation][6], I decided to use Panache here, as it seems to reduce the work I have to do dramatically.
 
-First you need to add the required extensions to your project. 
+First you need to add the required extensions to your project. The following command installs a JDBC driver for PostgreSQL and everything to be used for ORM:
 
 ```bash
 $> quarkus ext add quarkus-hibernate-orm-panache quarkus-jdbc-postgresql
@@ -189,9 +188,8 @@ Looking for the newly published extensions in registry.quarkus.io
 [SUCCESS] ✅  Extension io.quarkus:quarkus-jdbc-postgresql has been installed
 ```
 
-This call installs a JDBC driver for PostgreSQL and everything to be used for ORM. 
-
-The next step is to create an entity. Let’s call that entity `Person`, so you’re going to create a `Person.java` file. 
+### Java code for database operations
+The next step is to create an entity. Let’s call that entity `Person`, so you’re going to create a `Person.java` file.
 
 ```java
 package org.wanja.demo;
@@ -213,9 +211,9 @@ public class Person extends PanacheEntity {
 }
 ```
 
-Well, according to the docs, this should be the Person entity, which maps directly to a table `person` in our PostgreSQL database. All public properties will be mapped automatically to the corresponding entity in the database. If you don’t want that, you need to specify the `@Transient` annotation. That can’t be that easy, can it?
+Well, according to the docs, this should be the Person entity, which maps directly to a `person` table in our PostgreSQL database. All public properties will be mapped automatically to the corresponding entity in the database. If you don’t want that, you need to specify the `@Transient` annotation. That can’t be that easy, can it? **(AO: I don’t understand the rhetoric in the previous sentence. Are you being sarcastic? Will you return to this issue?)**
 
-You also need a `PersonResource` class which acts as REST endpoint. Let’s create such a simple class:
+You also need a `PersonResource` class to act as a REST endpoint. Let’s create such a simple class:
 
 ```java
 package org.wanja.demo;
@@ -234,7 +232,7 @@ import io.quarkus.panache.common.Sort;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class PersonResource {
-    
+
     @GET
     public List<Person> getAll() throws Exception {
         return Person.findAll(Sort.ascending("last_name")).list();
@@ -242,9 +240,10 @@ public class PersonResource {
 }
 ```
 
-Right now, this class has exactly one method `getAll()` which simply returns a list of all persons, sorted by the column `last_name`.
+Right now, this class has exactly one method, `getAll()`, which simply returns a list of all persons sorted by the `last_name` column.
 
-Now, we need to tell Quarkus that we really want to use a database. And then we need to find a way to start a PostgreSQL database locally. But one after another. 
+### Enabling the database
+Now, we need to tell Quarkus that we want to use a database. And then we need to find a way to start a PostgreSQL database locally. But one step at a time.
 
 Open the `application.properties` and add some properties in there:
 
@@ -257,7 +256,7 @@ quarkus.hibernate-orm.sql-load-script=import.sql
 quarkus.datasource.db-kind=postgresql
 ```
 
-And then let’s have a simple SQL import script to fill some basic data into the database. Create a new file called `src/main/resources/import.sql` and put the following lines in there. 
+And then let’s make a simple SQL import script to fill some basic data into the database. Create a new file called `src/main/resources/import.sql` and put the following lines in there: **(AO: "Ms" is more popular now than "Mrs", which looks pretty old-fashioned)**
 
 ```java
 insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Doro', 'Pesch', 'Mrs');
@@ -272,7 +271,7 @@ insert into person(id, first_name, last_name, salutation) values (nextval('hiber
 insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Eric', 'Clapton', 'Mr');
 ```
 
-If you are now restarting `quarkus dev`, you should at least have everything you need. 
+You can now restart `quarkus dev` with everything you need:
 
 ```bash
 $> quarkus dev
@@ -309,22 +308,22 @@ Hibernate:
     insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Bobby', 'Brown', 'Mr')
 ```
 
-The first time I started it, I expected exceptions because there was no PostgreSQL database installed locally on my laptop. But… no… No exception upon startup. How could that be?
+The first time I started Quarkus, I expected exceptions because there was no PostgreSQL database installed locally on my laptop. But… no… No exception upon startup. How could that be?
 
 ## Quarkus Dev Services
-Every developer has faced situations where they either wanted to quickly test some new feature or had to quickly bug fix an existing application. The workflow is mostly the same:
+Every developer has faced situations where they either wanted to quickly test some new feature or had to quickly fix a bug in an existing application. The workflow is mostly the same:
 - Setting up the local IDE
 - Cloning the source code repository
 - Checking dependencies for databases or other infrastructure software components
-- Installing the dependencies locally (a Redis, an infinispan server, a database, ApacheMQ…)
-- Making sure, everything is properly setup 
-- Create and implement the bug fix or the feature
+- Installing the dependencies locally (a Redis server, an Infinispan server, a database, ApacheMQ, or whatever is needed)
+- Making sure everything is properly set up
+- Creating and implementing the bug fix or the feature
 
-It takes quite some time to actually start implementing what you have to implement.
+In short, it takes quite some time to actually start implementing what you have to implement.
 
-This is where Quarkus Dev Services come into play. As soon as Quarkus detects that there is a dependency to a 3rd party component (database, MQ, cache…) and you have Docker Desktop installed on your developer machine, Quarkus starts the component for you. You don’t have to configure anything. It just happens. 
+This is where Quarkus Dev Services come into play. As soon as Quarkus detects that there is a dependency on a third-party component (database, MQ, cache, …) and you have Docker Desktop installed on your developer machine, Quarkus starts the component for you. You don’t have to configure anything. It just happens.
 
-Have a look at the [official Quarkus documentation][7] to see which components are currently supported by this way.
+Have a look at the [official Quarkus documentation][7] to see which components are currently supported in this manner in `dev` mode.
 
 ## Testing the database client
 So you don’t have to install and configure a PostgreSQL database server locally on your laptop. This is great. Let’s test your service now to prove that it works.
@@ -338,16 +337,16 @@ content-length: 113
 Could not find MessageBodyWriter for response object of type: java.util.ArrayList of media type: application/json
 ```
 
-OK. Well. It does not work. You need a `MessageBodyWriter` for this response type. If you have a look at the class `PersonResource`, you can see that we are directly returning a response of type `java.util.List<Person>`. And we have a global producer annotation of `application/json`. We need a component which translates the result into a JSON string. 
+OK. Well. It does not work. You need a `MessageBodyWriter` for this response type. If you have a look at the class `PersonResource`, you can see that we are directly returning a response of type `java.util.List<Person>`. And we have a global producer annotation of `application/json`. We need a component that translates the result into a JSON string.
 
-This can be done by the extension `quarkus-resteasy-jsonb` or `quarkus-resteasy-jacksonb`. We are going to use the first one by executing:
+This can be done through the `quarkus-resteasy-jsonb` or `quarkus-resteasy-jacksonb` extension. We are going to use the first one by executing:
 
 ```bash
 $> quarkus ext add quarkus-resteasy-jsonb
 [SUCCESS] ✅  Extension io.quarkus:quarkus-resteasy-jsonb has been installed
 ```
 
-If you’re now calling the above endpoint again, you should see the correctly resolved and formatted output.
+If you now call the endpoint again, you should see the correctly resolved and formatted output.
 
 ```bash
 $> http :8080/person
@@ -378,10 +377,10 @@ content-length: 741
 ```
 
 ## Finalizing the CRUD REST service
-For a real CRUD service, you still have to implement methods to add, delete and update a person from the list. Let’s do it now.
+For a well rounded create-read-update-delete (CRUD) service, you still have to implement methods to add, delete and update a person from the list. Let’s do it now.
 
-### Create a new person
-The code snippet to create a new person is quite easy. Just implement another method, annotate it with `@POST`  and `@Transactional` and that’s it.
+### Creating a new person
+The code snippet to create a new person is quite easy. Just implement another method, annotate it with `@POST`  and `@Transactional`, and that’s it.
 
 ```java
     @POST
@@ -394,9 +393,9 @@ The code snippet to create a new person is quite easy. Just implement another me
     }
 ```
 
-So the only relevant call we do in this method is calling `persist()` on a given `Person` instance. This is called the [Active Record Pattern][8] and is described in the official docs. 
+The only relevant method we call in this method is `persist()`, called on a given `Person` instance. This is known as the [active record pattern][8] and is described in the official documentation. **(AO: Consider pointing here to https://quarkus.io/guides/hibernate-orm-panache#solution-1-using-the-active-record-pattern instead.)**
 
-Let’s have a look if it works.
+Let’s have a look to see whether it works:
 
 ```bash
 $> http POST :8080/person firstName=Carlos lastName=Santana salutation=Mr
@@ -412,8 +411,10 @@ content-length: 69
 }
 ```
 
+The returned JSON indicates that we did what we intended.
+
 ### Updating an existing person
-The same is true for updating a person. Use the `@PUT` annotation and make sure you are providing a path parameter, which you have to annotate with `@PathParam`. 
+The same is true for updating a person. Use the `@PUT` annotation and make sure you are providing a path parameter, which you have to annotate with `@PathParam`:
 
 ```java
     @PUT
@@ -431,7 +432,7 @@ The same is true for updating a person. Use the `@PUT` annotation and make sure 
     }
 ```
 
-Let’s test it:
+Then test it:
 
 ```bash
 $> http PUT :8080/person/6 firstName=Jimi lastName=Hendrix
@@ -448,7 +449,7 @@ content-length: 66
 ```
 
 ### Deleting an existing person
-And finally, let’s create a `delete` method, which works exactly like the `update()` method:
+And finally, let’s create a `delete` method, which works in the same way as the `update()` method:
 
 ```java
     @DELETE
@@ -464,23 +465,30 @@ And finally, let’s create a `delete` method, which works exactly like the `upd
     }
 ```
 
-And let’s check if it works:
+And let’s check whether it works:
 ```bash
-$> http DELETE :8080/person/1 
+$> http DELETE :8080/person/1
 HTTP/1.1 204 No Content
 ```
 
+This is a correct response with a code in the 200 range.
+
 ## Preparing for CI/CD
-Until now everything you did was mainly for local development purposes. With just a few lines of code, you’ve been able to create a complete database client. You even did not have to worry about setting up a local database for testing. 
+Until now, everything you did was mainly for local development purposes. With just a few lines of code, you’ve been able to create a complete database client. You did not even have to worry about setting up a local database for testing.
 
-But how could we specify real database properties if we are going into TEST or PROD stages? 
+But how can you specify real database properties when entering test or production stages?
 
-Quarkus supports [configuration profiles][9]. Properties marked with a given profile name will only be used if the application runs in that particular profile. By default, Quarkus supports 3 profiles:
-- dev - Gets activated when you run your app via `quarkus dev`
-- test - This gets activated when you are running tests
-- prod - This is the default profile if the app is not started in `dev`profile
+Quarkus supports [configuration profiles][9]. Properties marked with a given profile name are used only if the application runs in that particular profile. By default, Quarkus supports the following profiles:
+dev::
+Gets activated when you run your app via `quarkus dev`
+test::
+Gets activated when you are running tests
+prod::
+The default profile if the app is not started in the `dev`profile
 
-In our case, we want to specify database specific properties only in `prod` mode, because if we are specifying for example a database URL in `dev`, Quarkus would not start the corresponding dev services.
+In our case, we want to specify database-specific properties only in `prod` mode. If we try to specify a database URL in `dev` mode, for example, Quarkus would not start the corresponding dev services. **(AO: The previous sentence needs context. Are you saying that you can’t specify the properties because Quarkus can’t apply them in dev mode? Or are you saying that you choose not to specify a database in dev mode, so Quarkus doesn’t apply the properties?)**
+
+Our configuration therefore is:
 
 ```java
 # only when we are developing
@@ -491,7 +499,7 @@ In our case, we want to specify database specific properties only in `prod` mode
 %prod.quarkus.hibernate-orm.database.generation=update
 %prod.quarkus.hibernate-orm.sql-load-script=no-file
 
-# Datasource settings... 
+# Datasource settings...
 # note, we only set those props in prod mode
 quarkus.datasource.db-kind=postgresql
 %prod.quarkus.datasource.username=${DB_USER}
@@ -499,20 +507,20 @@ quarkus.datasource.db-kind=postgresql
 %prod.quarkus.datasource.jdbc.url=jdbc:postgresql://${DB_HOST}/${DB_DATABASE}
 ```
 
-Quarkus also supports the usage of [Property Expressions][10]. For instance, if your application is running on Kubernetes, you might want to specify the  datasource username and password via a Secret. In this case, simply use the format `${PROP_NAME}`. Those expressions will be evaluated when they are read. The property names are either specified within the `application.properties` file or could be coming from environment variables.
+Quarkus also supports the use of [property expressions][10]. For instance, if your application is running on Kubernetes, you might want to specify the  datasource username and password via a Secret. In this case, use the `${PROP_NAME}` expression format to refer to the property that was set in the file. Those expressions are evaluated when they are read. The property names are either specified in the `application.properties` file or can come from environment variables.
 
-Now your application is [prepared for CI/CD][11] and also for going into production. 
+Now your application is [prepared for CI/CD][11] and for production.
 
-## Let’s move the app to OpenShift
-Quarkus provides extensions to [generate Kubernetes or OpenShift][12] specific manifest files. Let’s add them to our `pom.xml` file:
+## Moving the app to OpenShift
+Quarkus provides extensions to generate manifest files for Kubernetes or [OpenShift][12]. Let’s add the extensions to our `pom.xml` file:
 
 ```bash
 $> quarkus ext add jib openshift
 ```
 
-The `jib` extension will help you to generate a container image out of the application. The `openshift` extension on the other hand will generate the necessary manifest files to deploy the application on - well - OpenShift. 
+The `jib` extension will help you generate a container image out of the application. The `openshift` extension will generate the necessary manifest files to deploy the application on—well—OpenShift.
 
-And let’s specify the properties accordingly
+Let’s specify the properties accordingly:
 
 ```java
 # Packaging the app
@@ -529,14 +537,14 @@ quarkus.openshift.resources.limits.cpu=500m
 
 ```
 
-Now let’s build the application container image via:
+Now build the application container image via:
 ```bash
-$> mvn package -Dquarkus.container-image.push=true 
+$> mvn package -Dquarkus.container-image.push=true
 ```
 
-This will also push the image to [quay.io][13] as `quay.io/wpernath/singer:v1.0.0`. Quarkus is using [JIB][14] to build the image.
+This command also pushes the image to [Quay.io][13] as `quay.io/wpernath/singer:v1.0.0`. Quarkus is using [Jib][14] to build the image.
 
-After the image was build, you can install the application into OpenShift by applying the manifest file:
+After the image is built, you can install the application into OpenShift by applying the manifest file:
 
 ```bash
 $> oc apply -f target/kubernetes/openshift.yml
@@ -546,7 +554,7 @@ deployment.apps/person-service configured
 route.route.openshift.io/person-service configured
 ```
 
-Then create a PostgreSQL database instance in the same namespace from the corresponding template (click on `+Add -> Developer Catalog -> Database --> PostgreSQL` and provide meaningful properties for service name, user name, password and database name). You could also execute the following command on the shell to instantiate a PostgreSQL server in the current namespace:
+Then create a PostgreSQL database instance in the same namespace from the corresponding template. You can install the database from the OpenShift console by clicing on **+Add→Developer Catalog→Database→PostgreSQL** and filling in meaningful properties for the service name, user name, password and database name. You could alternatively execute the following command from the shell to instantiate a PostgreSQL server in the current namespace:
 
 ```bash
 $> oc new-app postgresql-persistent \
@@ -556,7 +564,7 @@ $> oc new-app postgresql-persistent \
 	-p DATABASE_SERVICE_NAME=wanjaserver
 ```
 
-If you’re specifying the database properties in `application.properties` like this:
+Suppose you’ve specified the database properties in `application.properties` like this:
 
 ```java
 %prod.quarkus.datasource.username=${DB_USER:wanja}
@@ -564,11 +572,11 @@ If you’re specifying the database properties in `application.properties` like 
 %prod.quarkus.datasource.jdbc.url=jdbc:postgresql://${DB_HOST:wanjaserver}/${DB_DATABASE:wanjadb}
 ```
 
-Quarkus is using the values after the colon as defaults which means you don’t have to create those environment values in the `Deployment` for this test. But if you want to use a Secret or ConfigMap, have a look at the [corresponding extension][15] for Quarkus. 
+Quarkus takes the values after the colon as defaults, which means you don’t have to create those environment values in the `Deployment` file for this test. But if you want to use a Secret or ConfigMap, have a look at the [corresponding extension][15] for Quarkus.
 
-After restarting the `person-service` you should see that the database will be used and that the person table was created. But there is no data in the database as we’ve defined the corresponding property to be used in dev mode only. 
+After restarting the `person-service` you should see that the database is used and that the `person` table was created. But there is no data in the database, because you’ve defined the corresponding property to be used in dev mode only.
 
-So let’s fill the database now:
+So fill the database now:
 ```bash
 $> http POST http://person-service-paul.apps.art8.ocp.lan/person firstName=Jimi lastName=Hendrix salutation=Mr
 
@@ -578,7 +586,7 @@ $> http POST http://person-service-paul.apps.art8.ocp.lan/person firstName=Carlo
 
 ```
 
-You should now have 3 singers in the database. To verify, call:
+You should now have three singers in the database. To verify, call:
 ```bash
 $> http http://person-service-paul.apps.art8.ocp.lan/person
 HTTP/1.1 200 OK
@@ -607,40 +615,40 @@ HTTP/1.1 200 OK
 ```
 
 ## Becoming native
-Do you want to create a native executable out of your quarkus app? That’s easily possible by simply calling:
+Do you want to create a native executable out of your Quarkus app? That’s easily done by calling:
 
 ```bash
 $> mvn package -Pnative -DskipTests
 ```
 
-However, this call would require you to setup GraalVM locally. If you don’t want to install and setup GraalVM locally or if you’re always building for a Container runtime, you could easily instruct Quarkus to [do a container build][16].
+However, this call would require you to set up [GraalVM][16] locally. GraalVM is a code generation tool that creates native C code from Java (JVM) input. If you don’t want to install and set up GraalVM locally or if you’re always building for a container runtime, you could instruct Quarkus to [do a container build][17] as follows:
 
 ```bash
 $> mvn package -Pnative -DskipTests -Dquarkus.native.container-build=true
 ```
 
-If you’re also providing the flag `quarkus.container-image.build=true`, Quarkus will produce a native container image, which you could then use easily on a Kubernetes cluster.
+If you also define `quarkus.container-image.build=true`, Quarkus will produce a native container image, which you could then use deploy to a Kubernetes cluster.
 
-Try it. And if you’re using OpenShift 4.9, you could have a look at the `Observe` register within the Developer Console. My OpenShift 4.9 is installed on an Intel NUC with a Core i7 with 6 cores. 
+Try it. And if you’re using OpenShift 4.9, you could have a look at the `Observe` register within the Developer Console. This page tells me, for instance, that my OpenShift 4.9 instance is installed on an Intel NUC with a Core i7 with 6 cores.
 
-Using a native image instead of a JVM one has changed quite a few things:
-- Startup time from 1.2sec (non-native) to 0.03sec (native)
-- Memory usage from 120MB (non-native) to 25MB (native)
-- CPU utilization dropped to 0.2% of the requested CPU time
+Using a native image instead of a JVM one changes quite a few things:
+- Startup time decreases from 1.2sec (non-native) to 0.03sec (native)
+- Memory usage decreases from 120MB (non-native) to 25MB (native)
+- CPU utilization drops to 0.2% of the requested CPU time
 
 ## Summary
-Using Quarkus dramatically reduces the lines of code you have to write. As you have seen, creating a simple REST CRUD service is just a piece of cake. If you then want to move your app to Kubernetes, it’s just a matter of adding another extension to the build process.
+Using Quarkus dramatically reduces the lines of code you have to write. As you have seen, creating a simple REST CRUD service is a piece of cake. If you then want to move your app to Kubernetes, it’s just a matter of adding another extension to the build process.
 
-Thanks to the Dev Services, you’re even able to do fast prototyping without worrying to install 3rd party apps like databases. 
+Thanks to the Dev Services, you’re even able to do fast prototyping without worrying about install many third-party applications, such as databases.
 
-Minimizing the amount of boilerplate code makes your app easier to maintain - and lets you focus on what you really have to do: implementing the business case. 
+Minimizing the amount of boilerplate code makes your application easier to maintain, and lets you focus on what you really have to do: implementing the business case.
 
-This is why I fell in love with Quarkus. 
+This is why I fell in love with Quarkus.
 
-Now let’s have a deeper look into working with Images on Kubernetes and OpenShift. 
+Now let’s have a deeper look into working with images on Kubernetes and OpenShift.
 
-[1]:	https://developers.redhat.com/e-books
-[2]:	https://quarkus.io
+[1]:	https://quarkus.io
+[2]:	https://developers.redhat.com/e-books
 [3]:	https://quarkus.io/get-started/
 [4]:	https://httpie.io
 [5]:	https://quarkus.io/guides/config
@@ -654,4 +662,5 @@ Now let’s have a deeper look into working with Images on Kubernetes and OpenSh
 [13]:	https://quay.io
 [14]:	https://github.com/GoogleContainerTools/jib
 [15]:	https://quarkus.io/guides/kubernetes-config
-[16]:	https://quarkus.io/guides/building-native-image#container-runtime
+[16]:   https://www.graalvm.org
+[17]:	https://quarkus.io/guides/building-native-image#container-runtime
