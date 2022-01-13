@@ -24,7 +24,7 @@ This solution is the easiest one but unfortunately very limited. You can’t cre
 Go to the [Developer Sandbox][1] and register for free. 
 
 ### Using CodeReady Containers (`crc`)
-CodeReady Containers (crc) provides a single node OpenShift installation for Windows, macOS and Linux. It runs OpenShift on an embedded virtual machine. You have all the flexibility of an external OpenShift cluster without the need of 3 or more master nodes. You are also able to install additional Operators. 
+CodeReady Containers (`crc`) provides a single node OpenShift installation for Windows, macOS and Linux. It runs OpenShift on an embedded virtual machine. You have all the flexibility of an external OpenShift cluster without the need of 3 or more master nodes. You are also able to install additional Operators. 
 
 This solution requires the following resources on your local machine:
 - 9 GB free memory 
@@ -34,8 +34,8 @@ This solution requires the following resources on your local machine:
 Go to [GitHub][2] for a list of releases and have a look at the [official documentation][3]. 
 
 
-### Using Single Node OpenShift (`sno`)
-With this solution you have most flexibility in using your OpenShift installation. But of course this also requires most resources. You should have a dedicated spare machine with the following specs in order to use SNO:
+### Using Single Node OpenShift (`SNO`)
+With this solution you have most flexibility in using your OpenShift installation. But of course this also requires most resources. You should have a dedicated spare machine with the following specs in order to use `SNO`:
 - 8 CPU cores
 - 32GB free memory
 - 150GB free hard disk space
@@ -43,7 +43,13 @@ With this solution you have most flexibility in using your OpenShift installatio
 Have a look at the [Red Hat Console][4] to start the installation process. After installation you should have a look at my [OpenShift Config script][5], you can find on GitHub as well. This script creates persistent volumes, makes the internal registry non-ephemeral, creates a cluster-admin user and installs necessary operators and a CI environment with Nexus (a maven repository) and Gogs (a Git repository). 
 
 ## The container image registry
-I am using [Quay.io][6] for all of my images. The account is for free and it does not limit upload/download rates. However, you can use any docker compliant registry to store your container images on. 
+I am using [Quay.io][6] for all of my images. The account is for free and it does not limit upload/download rates. Once registered, go to `Account Settings` —\> `User Settings` and generate an encrypted password. Quay.io will give you some options to store your password hash, for example as a Kubernetes-secret, which you can then directly use as push-/pull secrets. 
+
+The free account however limits you to only create public repositories, so anybody can read from your repository but only you are allowed to write and update your image. 
+
+Once you’ve created your image in the repository, you have to go to the image properties and make sure it’s public. By default, Quay.io creates private repositories. 
+
+However, you can use any docker compliant registry to store your container images on. 
 
 ## The structure of the example
 All the examples can be found on GitHub: [https://github.com/wpernath/book-example][7]

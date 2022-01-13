@@ -127,7 +127,7 @@ content-length: 7
 Hi Yay!
 ```
 
-OK, this is getting interesting now. You don’t have to recompile or restart Quarkus to see your changes in action. Let’s have a look at the [Quarkus documentatio about configuring your application][5], because we don’t want to use hard-coded strings.
+OK, this is getting interesting now. You don’t have to recompile or restart Quarkus to see your changes in action. Let’s have a look at the [Quarkus documentation about configuring your application][5], because we don’t want to use hard-coded strings.
 
 To reconfigure the application, open  `src/main/resources/application.properties` in your preferred editor and create a new property. For example:
 
@@ -662,5 +662,5 @@ Now let’s have a deeper look into working with images on Kubernetes and OpenSh
 [13]:	https://quay.io
 [14]:	https://github.com/GoogleContainerTools/jib
 [15]:	https://quarkus.io/guides/kubernetes-config
-[16]:   https://www.graalvm.org
+[16]:	https://www.graalvm.org
 [17]:	https://quarkus.io/guides/building-native-image#container-runtime
