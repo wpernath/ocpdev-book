@@ -36,7 +36,7 @@ Go to [GitHub][2] for a list of releases and have a look at the [official docume
 
 ### Using Single Node OpenShift (`SNO`)
 With this solution you have most flexibility in using your OpenShift installation. But of course this also requires most resources. You should have a dedicated spare machine with the following specs in order to use `SNO`:
-- 8 CPU cores
+- 8 vCPU cores
 - 32GB free memory
 - 150GB free hard disk space
 
