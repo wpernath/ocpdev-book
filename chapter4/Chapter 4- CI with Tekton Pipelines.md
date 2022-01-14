@@ -59,7 +59,7 @@ In order to stay vendor-independent, we have to use Jib for this use case.
 
 Of course, you could also use other tools to create your container image inside Kubernetes. But in order to keep this Tekton example clean and simple, we are reusing what Quarkus provides. So we are able to simply set a few Quarkus properties in `application.properties` to define how Quarkus should package the application. Now we are able to use exactly *one* Tekton task to compile, package, and push the application to an external registry.
 
-> **NOTE**: Make sure that your Quarkus application is using the required Quarkus extension called `container-image-jib`. If your `pom.xml` file does not include the `quarkus-container-image-jib` dependency, add it by executing:
+**NOTE**: Make sure that your Quarkus application is using the required Quarkus extension called `container-image-jib`. If your `pom.xml` file does not include the `quarkus-container-image-jib` dependency, add it by executing:
 
 ```bash
 $ mvn quarkus:add-extension -Dextensions="container-image-jib"
@@ -127,7 +127,7 @@ Figure 4 shows all the available ClusterTasks created after you install the Open
 
 We are just missing the `kustomize` task. We'll create one later. We first want to take care of the rest of the tasks.
 
-Wait—what is the difference between a task and a ClusterTask? The answer is easy: A ClusterTask is available globally in all projects, whereas a task is available only locally per project and must be installed into each project, where you want to use it.
+Wait — what is the difference between a task and a ClusterTask? The answer is easy: A ClusterTask is available globally in all projects, whereas a task is available only locally per project and must be installed into each project, where you want to use it.
 
 ### Analyzing the necessary tasks
 If you want to have a look at the structure of a task, you can easily do so by executing the following command:
@@ -415,9 +415,9 @@ build-and-push-image-ru0   13 hours ago   8 minutes    Succeeded
 ```
 
 ## Summary of using Tekton pipelines
-Tekton is a powerful tool for creating CI/CD pipelines. Because it is based on Kubernetes, it uses extensive concepts from Kubernetes and reduces the maintenance of the tool itself. If you want to quickly start your first pipeline, try to use the OpenShift Developer UI, which you get for free if you’re installing the Operator. This gives you a nice base to start your tests. However, at some point—especially when it comes to optimizations—you need a proper editor to code your pipelines.
+Tekton is a powerful tool for creating CI/CD pipelines. Because it is based on Kubernetes, it uses extensive concepts from Kubernetes and reduces the maintenance of the tool itself. If you want to quickly start your first pipeline, try to use the OpenShift Developer UI, which you get for free if you’re installing the Operator. This gives you a nice base to start your tests. However, at some point— especially when it comes to optimizations — you need a proper editor to code your pipelines.
 
-One of the biggest advantages of Tekron over CI/CD tools such as Jenkins is that you can reuse all your work for other projects and applications. If you want to standardize the way your pipelines work, build one pipeline and simply specify different sets of parameters for different situations. PipelineRun objects make this possible. The pipeline we have just created in this chapter can easily be reused for all Quarkus-generated applications. Just change the `git-url` and `image-name` parameters. That‘s all. Isn‘t this great?
+One of the biggest advantages of Tekton over CI/CD tools such as Jenkins is that you can reuse all your work for other projects and applications. If you want to standardize the way your pipelines work, build one pipeline and simply specify different sets of parameters for different situations. PipelineRun objects make this possible. The pipeline we have just created in this chapter can easily be reused for all Quarkus-generated applications. Just change the `git-url` and `image-name` parameters. That‘s all. Isn‘t this great?
 
 And even if you’re not satisfied with all the tasks you get from Tekton Hub, use them as bases and build your own iterations out of them, as we did with the optimized Maven task and the Kustomize task in this chapter.
 

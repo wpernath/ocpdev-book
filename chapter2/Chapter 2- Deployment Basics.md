@@ -87,7 +87,7 @@ This section has described one way of getting required files. Of course, if you 
 
 This simple example has shown how you can export the manifest files of your app to redeploy it into another clean namespace. Typically, you have to change some fields to reflect differences between environments, especially for the `Deployment` file. 
 
-For example, it does not make sense to use the latest image from the `book-dev` namespace in the `book-test` namespace. You’d always have the same version of your application in the development and test environments. To allow the environments to evolve seprately, you have to change the image in the `Deployment` on every stage you’re using. You could obviously do this manually. But let’s find some ways to automate it.
+For example, it does not make sense to use the latest image from the `book-dev` namespace in the `book-test` namespace. You’d always have the same version of your application in the development and test environments. To allow the environments to evolve separately, you have to change the image in the `Deployment` on every stage you’re using. You could obviously do this manually. But let’s find some ways to automate it.
 
 ## YAML Parser (yq)
 To maintain different versions of configuration files, the first tool that most likely pops into your mind is the lightweight command-line YAML parser, [`yq`][1]. 

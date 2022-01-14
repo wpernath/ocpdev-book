@@ -658,8 +658,8 @@ metadata:
 
 Argo CD sorts all resources first by the phase, then by the wave, and finally by type and name. If you know that some resources need to be applied before others, simply group them via the annotation. By default, Argo CD uses wave zero for any resources and hooks.
 
-### Nondeclarative Deployments
-Nondeclarative deployments are simply lists of steps; they are also called *imperative*. For most of us, the most familiar type of deployment. For instance, if you're creating a hand-over document for the OPS department, you are providing imperative instructions about how to install the application. And most of us are used to creating installation scripts for more complex applications.
+### Non declarative Deployments
+Non declarative deployments are simply lists of steps; they are also called *imperative*. For most of us, the most familiar type of deployment. For instance, if you're creating a hand-over document for the OPS department, you are providing imperative instructions about how to install the application. And most of us are used to creating installation scripts for more complex applications.
 
 However, the preferred way of installing applications with Kubernetes is through declarative deployments. These specify the service, the deployment, persistent volume claims, secrets, config maps etc.
 
