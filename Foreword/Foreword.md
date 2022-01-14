@@ -1,5 +1,4 @@
 # Foreword
-
 The job of a software developer has never been more approachable as nowadays. There are plenty of free resources provided by great communities to start from, allowing you to achieve quick successes with only little effort. But only few of us remained in the role of a pure programmer and young professionals face different challenges than one to two decades ago. The DevOps mindset and company restructurings made us all "software engineers".
 
 The naming "Software engineer" is not only a re-branding of these creepy, nocturnal keyboard maniacs, it mainly means two things: Building software is established as an engineering discipline (that need to be learned), and: it's not only about producing source code anymore, but also about creating and operating complex systems composed by the right components for every purpose.
@@ -13,3 +12,5 @@ There were (and there still are) many discussions and sophisticated concepts abo
 We know "Infrastructure as Code" for some while, it has become common practice in the most cloud environments. With GitOps we do exactly the same regarding application deployment and configuration. The desired state (of Kubernetes resources) is described declaratively and versioned in Git - operators running in the target environment are continuously validating and reconciling it. The process of continues delivery is fully automated by specialized components like the CNCF projects ArgoCD or FluxCD and of course the build-ins of OpenShift.
 
 How all of this nicely plays together, peppered with lots of examples can be found in this book. Take Wanja's red pill and follow him down the rabbit hole of modern software delivery.
+
+*Florian Heubeck*
