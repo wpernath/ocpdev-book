@@ -1,11 +1,11 @@
 # Chapter 1: Creating the sample service
-This books needs a good example to demonstrate the power of working with Kubernetes and OpenShift. As an application that will be familiar and useful to most readers, we’ll create a REST-based microservice in Java that reads data from and writes data to a database.
+This books needs a good example to demonstrate the power of working with Kubernetes and OpenShift. As an application that will be familiar and useful to most readers, we’ll create a REST-based micros ervice in Java that reads data from and writes data to a database.
 
 I have to say, I like [Quarkus][1]. I have been coding for over two decades with Java and JEE. I have been using most of the frameworks out there (does anyone remember Struts or JBoss Seam or SilverStream?). I’ve even created code generators to make my life easier with EJBs (1.x and 2.x). But all of those frameworks and ideas had one thing in common: they tried to minimize the efforts for the developers but they had other drawbacks.
 
 And then back in 2020 when I thought, there is nothing out there which could really positively surprise me, I had a look at Quarkus. This is my personal story about Quarkus.
 
-So this chapter is all about creating a microservice with Quarkus. If you want to understand more about Quarkus, feel free to get one of the other books available on the [Red Hat developers page][2]. **(AO: Currently, there seems to be only one book on the topic, which I happened also to edit: https://developers.redhat.com/e-books/quarkus-spring-developers. So maybe you should just point to it.)**
+So this chapter is all about creating a micro service with Quarkus. If you want to understand more about Quarkus, feel free to get one of the other books available on the [Red Hat developers page][2]. 
 
 ## First steps
 Quarkus has a [Get Started][3]page. Go there to have a look at how to install the command line tool, which is called `quarkus`.
@@ -13,7 +13,7 @@ Quarkus has a [Get Started][3]page. Go there to have a look at how to install th
 After you’ve installed the `quarkus` tool, create a new project by executing:
 
 ```bash
-$> quarkus create app org.wanja.demo:person-service:1.0.0
+$ quarkus create app org.wanja.demo:person-service:1.0.0
 Looking for the newly published extensions in registry.quarkus.io
 -----------
 
@@ -36,7 +36,7 @@ Navigate into this directory and get started: quarkus dev
 This will create an initial maven project with the following structure:
 
 ```bash
-$> tree
+$ tree
 .
 ├── README.md
 ├── mvnw
@@ -72,12 +72,12 @@ $> tree
 
 If you want to test what you have done so far, call:
 ```bash
-$> mvn quarkus:dev
+$ mvn quarkus:dev
 ```
 
 Or if you prefer to use the Quarkus CLI tool, you can also call:
 ```bash
-$> quarkus dev
+$ quarkus dev
 ```
 
 This compiles all sources and starts the development mode of your project, where you don’t need to specify any runtime environment (Tomcat, JBoss, etc.).
@@ -106,7 +106,7 @@ public class GreetingResource {
 So it seems that, if `quarkus:dev` is running, you should have an endpoint reachable at `localhost:8080/hello` in a browser on that system. Let’s have a look. For testing of REST endpoints, you can use either `curl` or the much newer client called [httpie][4]. I prefer to the newer one:
 
 ```bash
-$> http :8080/hello
+$ http :8080/hello
 HTTP/1.1 200 OK
 Content-Type: text/plain;charset=UTF-8
 content-length: 14
@@ -119,7 +119,7 @@ This was easy. But still nothing really new. Let’s go a little bit deeper.
 Let’s change the string `Hello RESTEasy` into something new and call the service again (but without restarting `quarkus dev`—that’s a key point to make).
 
 ```bash
-$> http :8080/hello
+$ http :8080/hello
 HTTP/1.1 200 OK
 Content-Type: text/plain;charset=UTF-8
 content-length: 7
@@ -172,7 +172,7 @@ content-length: 25
 Hello, quarkus developer!
 ```
 
-Again, you haven’t recompiled or restarted the services. Quarkus is watching for any changes in the source tree and takes the required actions automatically. **(AO: Because we talk about "healing" later in Chapter 5, it might be worth introducing that term here. But it also might confuse the reader.)**
+Again, you haven’t recompiled or restarted the services. Quarkus is watching for any changes in the source tree and takes the required actions automatically. 
 
 This is already great. Really. But let’s move on.
 
@@ -182,7 +182,7 @@ The use case for this book should not be a simple hello service. We want to have
 First you need to add the required extensions to your project. The following command installs a JDBC driver for PostgreSQL and everything to be used for ORM:
 
 ```bash
-$> quarkus ext add quarkus-hibernate-orm-panache quarkus-jdbc-postgresql
+$ quarkus ext add quarkus-hibernate-orm-panache quarkus-jdbc-postgresql
 Looking for the newly published extensions in registry.quarkus.io
 [SUCCESS] ✅  Extension io.quarkus:quarkus-hibernate-orm-panache has been installed
 [SUCCESS] ✅  Extension io.quarkus:quarkus-jdbc-postgresql has been installed
@@ -211,7 +211,7 @@ public class Person extends PanacheEntity {
 }
 ```
 
-Well, according to the docs, this should be the Person entity, which maps directly to a `person` table in our PostgreSQL database. All public properties will be mapped automatically to the corresponding entity in the database. If you don’t want that, you need to specify the `@Transient` annotation. That can’t be that easy, can it? **(AO: I don’t understand the rhetoric in the previous sentence. Are you being sarcastic? Will you return to this issue?)**
+Well, according to the docs, this should be the Person entity, which maps directly to a `person` table in our PostgreSQL database. All public properties will be mapped automatically to the corresponding entity in the database. If you don’t want that, you need to specify the `@Transient` annotation. That can’t be that easy, can it? 
 
 You also need a `PersonResource` class to act as a REST endpoint. Let’s create such a simple class:
 
@@ -256,15 +256,15 @@ quarkus.hibernate-orm.sql-load-script=import.sql
 quarkus.datasource.db-kind=postgresql
 ```
 
-And then let’s make a simple SQL import script to fill some basic data into the database. Create a new file called `src/main/resources/import.sql` and put the following lines in there: **(AO: "Ms" is more popular now than "Mrs", which looks pretty old-fashioned)**
+And then let’s make a simple SQL import script to fill some basic data into the database. Create a new file called `src/main/resources/import.sql` and put the following lines in there: 
 
 ```java
-insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Doro', 'Pesch', 'Mrs');
+insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Doro', 'Pesch', 'Ms');
 insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Bobby', 'Brown', 'Mr');
 insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Curt', 'Cobain', 'Mr');
 insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Nina', 'Hagen', 'Mrs');
 insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Jimmi', 'Henrix', 'Mr');
-insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Janis', 'Joplin', 'Mrs');
+insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Janis', 'Joplin', 'Ms');
 insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Joe', 'Cocker', 'Mr');
 insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Alice', 'Cooper', 'Mr');
 insert into person(id, first_name, last_name, salutation) values (nextval('hibernate_sequence'), 'Bruce', 'Springsteen', 'Mr');
@@ -274,7 +274,7 @@ insert into person(id, first_name, last_name, salutation) values (nextval('hiber
 You can now restart `quarkus dev` with everything you need:
 
 ```bash
-$> quarkus dev
+$ quarkus dev
 2021-12-15 13:39:47,725 INFO  [io.qua.dat.dep.dev.DevServicesDatasourceProcessor] (build-26) Dev Services for the default datasource (postgresql) started.
 Hibernate:
 
@@ -329,7 +329,7 @@ Have a look at the [official Quarkus documentation][7] to see which components a
 So you don’t have to install and configure a PostgreSQL database server locally on your laptop. This is great. Let’s test your service now to prove that it works.
 
 ```bash
-$> http :8080/person
+$ http :8080/person
 HTTP/1.1 500 Internal Server Error
 Content-Type: text/html;charset=UTF-8
 content-length: 113
@@ -342,14 +342,14 @@ OK. Well. It does not work. You need a `MessageBodyWriter` for this response typ
 This can be done through the `quarkus-resteasy-jsonb` or `quarkus-resteasy-jacksonb` extension. We are going to use the first one by executing:
 
 ```bash
-$> quarkus ext add quarkus-resteasy-jsonb
+$ quarkus ext add quarkus-resteasy-jsonb
 [SUCCESS] ✅  Extension io.quarkus:quarkus-resteasy-jsonb has been installed
 ```
 
 If you now call the endpoint again, you should see the correctly resolved and formatted output.
 
 ```bash
-$> http :8080/person
+$ http :8080/person
 HTTP/1.1 200 OK
 Content-Type: application/json
 content-length: 741
@@ -393,12 +393,12 @@ The code snippet to create a new person is quite easy. Just implement another me
     }
 ```
 
-The only relevant method we call in this method is `persist()`, called on a given `Person` instance. This is known as the [active record pattern][8] and is described in the official documentation. **(AO: Consider pointing here to https://quarkus.io/guides/hibernate-orm-panache#solution-1-using-the-active-record-pattern instead.)**
+The only relevant method we call in this method is `persist()`, called on a given `Person` instance. This is known as the [active record pattern][8] and is described in the official documentation. 
 
 Let’s have a look to see whether it works:
 
 ```bash
-$> http POST :8080/person firstName=Carlos lastName=Santana salutation=Mr
+$ http POST :8080/person firstName=Carlos lastName=Santana salutation=Mr
 HTTP/1.1 200 OK
 Content-Type: application/json
 content-length: 69
@@ -435,7 +435,7 @@ The same is true for updating a person. Use the `@PUT` annotation and make sure 
 Then test it:
 
 ```bash
-$> http PUT :8080/person/6 firstName=Jimi lastName=Hendrix
+$ http PUT :8080/person/6 firstName=Jimi lastName=Hendrix
 HTTP/1.1 200 OK
 Content-Type: application/json
 content-length: 66
@@ -467,7 +467,7 @@ And finally, let’s create a `delete` method, which works in the same way as th
 
 And let’s check whether it works:
 ```bash
-$> http DELETE :8080/person/1
+$ http DELETE :8080/person/1
 HTTP/1.1 204 No Content
 ```
 
@@ -479,14 +479,11 @@ Until now, everything you did was mainly for local development purposes. With ju
 But how can you specify real database properties when entering test or production stages?
 
 Quarkus supports [configuration profiles][9]. Properties marked with a given profile name are used only if the application runs in that particular profile. By default, Quarkus supports the following profiles:
-dev::
-Gets activated when you run your app via `quarkus dev`
-test::
-Gets activated when you are running tests
-prod::
-The default profile if the app is not started in the `dev`profile
+- `dev`: Gets activated when you run your app via `quarkus dev`
+- `test`: Gets activated when you are running tests
+- `prod`: The default profile if the app is not started in the `dev` profile
 
-In our case, we want to specify database-specific properties only in `prod` mode. If we try to specify a database URL in `dev` mode, for example, Quarkus would not start the corresponding dev services. **(AO: The previous sentence needs context. Are you saying that you can’t specify the properties because Quarkus can’t apply them in dev mode? Or are you saying that you choose not to specify a database in dev mode, so Quarkus doesn’t apply the properties?)**
+In our case, we want to specify database-specific properties only in `prod` mode. If we try to specify a database URL in `dev` mode, for example, Quarkus would not start the corresponding dev services but would think, you’d want to use your preinstalled database server on that URL. 
 
 Our configuration therefore is:
 
@@ -509,13 +506,13 @@ quarkus.datasource.db-kind=postgresql
 
 Quarkus also supports the use of [property expressions][10]. For instance, if your application is running on Kubernetes, you might want to specify the  datasource username and password via a Secret. In this case, use the `${PROP_NAME}` expression format to refer to the property that was set in the file. Those expressions are evaluated when they are read. The property names are either specified in the `application.properties` file or can come from environment variables.
 
-Now your application is [prepared for CI/CD][11] and for production.
+Now your application is prepared for CI/CD and for production (see later in this book).
 
 ## Moving the app to OpenShift
-Quarkus provides extensions to generate manifest files for Kubernetes or [OpenShift][12]. Let’s add the extensions to our `pom.xml` file:
+Quarkus provides extensions to generate manifest files for Kubernetes or [OpenShift][11]. Let’s add the extensions to our `pom.xml` file:
 
 ```bash
-$> quarkus ext add jib openshift
+$ quarkus ext add jib openshift
 ```
 
 The `jib` extension will help you generate a container image out of the application. The `openshift` extension will generate the necessary manifest files to deploy the application on—well—OpenShift.
@@ -539,25 +536,25 @@ quarkus.openshift.resources.limits.cpu=500m
 
 Now build the application container image via:
 ```bash
-$> mvn package -Dquarkus.container-image.push=true
+$ mvn package -Dquarkus.container-image.push=true
 ```
 
-This command also pushes the image to [Quay.io][13] as `quay.io/wpernath/singer:v1.0.0`. Quarkus is using [Jib][14] to build the image.
+This command also pushes the image to [Quay.io][12] as `quay.io/wpernath/singer:v1.0.0`. Quarkus is using [Jib][13] to build the image.
 
 After the image is built, you can install the application into OpenShift by applying the manifest file:
 
 ```bash
-$> oc apply -f target/kubernetes/openshift.yml
+$ oc apply -f target/kubernetes/openshift.yml
 service/person-service configured
 imagestream.image.openshift.io/person-service configured
 deployment.apps/person-service configured
 route.route.openshift.io/person-service configured
 ```
 
-Then create a PostgreSQL database instance in the same namespace from the corresponding template. You can install the database from the OpenShift console by clicing on **+Add→Developer Catalog→Database→PostgreSQL** and filling in meaningful properties for the service name, user name, password and database name. You could alternatively execute the following command from the shell to instantiate a PostgreSQL server in the current namespace:
+Then create a PostgreSQL database instance in the same namespace from the corresponding template. You can install the database from the OpenShift console by clicking on **+Add→Developer Catalog→Database→PostgreSQL** and filling in meaningful properties for the service name, user name, password and database name. You could alternatively execute the following command from the shell to instantiate a PostgreSQL server in the current namespace:
 
 ```bash
-$> oc new-app postgresql-persistent \
+$ oc new-app postgresql-persistent \
 	-p POSTGRESQL_USER=wanja \
 	-p POSTGRESQL_PASSWORD=wanja \
 	-p POSTGRESQL_DATABASE=wanjadb \
@@ -572,23 +569,23 @@ Suppose you’ve specified the database properties in `application.properties` l
 %prod.quarkus.datasource.jdbc.url=jdbc:postgresql://${DB_HOST:wanjaserver}/${DB_DATABASE:wanjadb}
 ```
 
-Quarkus takes the values after the colon as defaults, which means you don’t have to create those environment values in the `Deployment` file for this test. But if you want to use a Secret or ConfigMap, have a look at the [corresponding extension][15] for Quarkus.
+Quarkus takes the values after the colon as defaults, which means you don’t have to create those environment values in the `Deployment` file for this test. But if you want to use a Secret or ConfigMap, have a look at the [corresponding extension][14] for Quarkus.
 
 After restarting the `person-service` you should see that the database is used and that the `person` table was created. But there is no data in the database, because you’ve defined the corresponding property to be used in dev mode only.
 
 So fill the database now:
 ```bash
-$> http POST http://person-service-paul.apps.art8.ocp.lan/person firstName=Jimi lastName=Hendrix salutation=Mr
+$ http POST http://person-service-paul.apps.art8.ocp.lan/person firstName=Jimi lastName=Hendrix salutation=Mr
 
-$> http POST http://person-service-paul.apps.art8.ocp.lan/person firstName=Joe lastName=Cocker salutation=Mr
+$ http POST http://person-service-paul.apps.art8.ocp.lan/person firstName=Joe lastName=Cocker salutation=Mr
 
-$> http POST http://person-service-paul.apps.art8.ocp.lan/person firstName=Carlos lastName=Santana salutation=Mr
+$ http POST http://person-service-paul.apps.art8.ocp.lan/person firstName=Carlos lastName=Santana salutation=Mr
 
 ```
 
 You should now have three singers in the database. To verify, call:
 ```bash
-$> http http://person-service-paul.apps.art8.ocp.lan/person
+$ http http://person-service-paul.apps.art8.ocp.lan/person
 HTTP/1.1 200 OK
 
 [
@@ -618,18 +615,20 @@ HTTP/1.1 200 OK
 Do you want to create a native executable out of your Quarkus app? That’s easily done by calling:
 
 ```bash
-$> mvn package -Pnative -DskipTests
+$ mvn package -Pnative -DskipTests
 ```
 
-However, this call would require you to set up [GraalVM][16] locally. GraalVM is a code generation tool that creates native C code from Java (JVM) input. If you don’t want to install and set up GraalVM locally or if you’re always building for a container runtime, you could instruct Quarkus to [do a container build][17] as follows:
+However, this call would require you to set up [GraalVM][15] locally. GraalVM is a Java compiler that creates native executables from Java sources input. If you don’t want to install and set up GraalVM locally or if you’re always building for a container runtime, you could instruct Quarkus to [do a container build][16] as follows:
 
 ```bash
-$> mvn package -Pnative -DskipTests -Dquarkus.native.container-build=true
+$ mvn package -Pnative -DskipTests -Dquarkus.native.container-build=true
 ```
 
-If you also define `quarkus.container-image.build=true`, Quarkus will produce a native container image, which you could then use deploy to a Kubernetes cluster.
+If you also define `quarkus.container-image.build=true`, Quarkus will produce a native container image, which you could then use to deploy to a Kubernetes cluster.
 
-Try it. And if you’re using OpenShift 4.9, you could have a look at the `Observe` register within the Developer Console. This page tells me, for instance, that my OpenShift 4.9 instance is installed on an Intel NUC with a Core i7 with 6 cores.
+Try it. And if you’re using OpenShift 4.9, you could have a look at the `Observe` register within the Developer Console. This page is monitoring the resources used by a container image. 
+
+My OpenShift 4.9 instance is installed on an Intel NUC with a Core i7 with 6 cores and 64GB of RAM.
 
 Using a native image instead of a JVM one changes quite a few things:
 - Startup time decreases from 1.2sec (non-native) to 0.03sec (native)
@@ -654,13 +653,12 @@ Now let’s have a deeper look into working with images on Kubernetes and OpenSh
 [5]:	https://quarkus.io/guides/config
 [6]:	https://quarkus.io/guides/hibernate-orm-panache
 [7]:	https://quarkus.io/guides/dev-services
-[8]:	https://quarkus.io/guides/hibernate-orm-panache#most-useful-operations
+[8]:	https://quarkus.io/guides/hibernate-orm-panache#solution-1-using-the-active-record-pattern
 [9]:	https://quarkus.io/guides/config-reference#profiles
 [10]:	https://quarkus.io/guides/config-reference#property-expressions
-[11]:	https://www.opensourcerers.org/2021/07/26/automated-application-packaging-and-distribution-with-openshift-tekton-pipelines-part-34-2/
-[12]:	https://quarkus.io/guides/deploying-to-openshift
-[13]:	https://quay.io
-[14]:	https://github.com/GoogleContainerTools/jib
-[15]:	https://quarkus.io/guides/kubernetes-config
-[16]:	https://www.graalvm.org
-[17]:	https://quarkus.io/guides/building-native-image#container-runtime
+[11]:	https://quarkus.io/guides/deploying-to-openshift
+[12]:	https://quay.io
+[13]:	https://github.com/GoogleContainerTools/jib
+[14]:	https://quarkus.io/guides/kubernetes-config
+[15]:	https://www.graalvm.org
+[16]:	https://quarkus.io/guides/building-native-image#container-runtime

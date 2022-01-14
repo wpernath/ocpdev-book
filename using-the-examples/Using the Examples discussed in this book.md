@@ -60,7 +60,7 @@ Please fork it and then use it as you want to use it.
 The folder `person-service` contains the Java sources of the Quarkus example. If you want to deploy it on OpenShift, please make sure to first install a PostgreSQL server, either via Crunchy Data or by instantiating the template `postgresql-persistent`. 
 
 ```bash
-$> oc new-app postgresql-persistent \
+$ oc new-app postgresql-persistent \
 	-p POSTGRESQL_USER=wanja \
 	-p POSTGRESQL_PASSWORD=wanja \
 	-p POSTGRESQL_DATABASE=wanjadb \
@@ -80,7 +80,7 @@ This chapter is about Helm Charts and Kubernetes Operators. So you can find the 
 This chapter is about Tekton / OpenShift Pipelines. The sources can be found in   the folder `tekton`. Please also have a look at the script `pipeline.sh`. It installs all the necessary Tasks and resources if you call it with the `init` parameter:
 
 ```bash
-$> pipeline.sh init
+$ pipeline.sh init
 configmap/maven-settings configured
 persistentvolumeclaim/maven-repo-pvc configured
 persistentvolumeclaim/builder-pvc configured
@@ -91,7 +91,7 @@ pipeline.tekton.dev/build-and-push-image configured
 
 You can start the pipeline by executing
 ```bash
-$> pipeline.sh start -u wpernath -p <your-quay-token>
+$ pipeline.sh start -u wpernath -p <your-quay-token>
 pipelinerun.tekton.dev/build-and-push-image-run-20211125-163308 created
 ```
 
@@ -100,7 +100,7 @@ This chapter is about using Tekton and ArgoCD. The sources can be found in the f
 
 To initialize call:
 ```bash
-$> ./pipeline.sh init [--force] --git-user <user> \
+$ ./pipeline.sh init [--force] --git-user <user> \
 	--git-password <pwd> \
 	--registry-user <user> \
 	--registry-password <pwd> 
@@ -112,7 +112,7 @@ This call (if given the `--force` flag) will create the following namespaces and
 - `book-stage`: The last stage release
 
 ```bash
-$> ./pipeline.sh build -u <reg-user> \
+$ ./pipeline.sh build -u <reg-user> \
 	-p <reg-password>
 ```
 
@@ -120,7 +120,7 @@ This starts the development pipeline as discussed in chapter 5. Whenever the pip
 
 To start the staging pipeline, call
 ```bash
-$> ./pipeline.sh stage -r v1.0.1-testing
+$ ./pipeline.sh stage -r v1.0.1-testing
 ```
 
 This creates a new branch in Git called `release-v1.0.1-testing`, uses the current DEV image, tags it on quay.io and updates the `stage` config in git. 

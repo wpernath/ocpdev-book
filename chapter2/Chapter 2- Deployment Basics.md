@@ -20,9 +20,9 @@ In native Kubernetes, I have to take care of creating and maintaining those arti
 The following commands create a new project named `book-dev` in OpenShift, followed by a new app named `person-service`. The app is based on the Java builder image `openjdk-11-ubi8` and takes its source code coming from GitHub. The final command effectively publishes the service so that apps from outside of OpenShift can interact with it: 
 
 ```bash
-$> oc new-project book-dev
-$> oc new-app java:openjdk-11-ubi8~https://github.com/wpernath/book-example.git --context-dir=person-service --name=person-service --build-env MAVEN_MIRROR_URL=http://nexus.ci:8081/repository/maven-public/
-$> oc expose service/person-service
+$ oc new-project book-dev
+$ oc new-app java:openjdk-11-ubi8~https://github.com/wpernath/book-example.git --context-dir=person-service --name=person-service --build-env MAVEN_MIRROR_URL=http://nexus.ci:8081/repository/maven-public/
+$ oc expose service/person-service
 route.route.openshift.io/person-service exposed
 ```
 
@@ -33,7 +33,7 @@ Security settings, deployment, image, route and service will be generated for yo
 In order to let the example start successfully, we have to create a PostgreSQL database server as well. Just execute the following command. We will discuss it later.
 
 ```bash
-$> oc new-app postgresql-persistent \
+$ oc new-app postgresql-persistent \
 	-p POSTGRESQL_USER=wanja \
 	-p POSTGRESQL_PASSWORD=wanja \
 	-p POSTGRESQL_DATABASE=wanjadb \
@@ -54,14 +54,14 @@ So what are the necessary artifacts in an OpenShift app deployment?
 Once those files are automatically generated, you can get them by using `kubectl` or `oc`:
 
 ```bash
-$> oc get deployment
+$ oc get deployment
 NAME             READY   UP-TO-DATE   AVAILABLE   AGE
 person-service   1/1     1            1           79m
 ```
 
 By specifying the `-o yaml` option, you can get the complete descriptor:
 ```bash
-$> oc get deployment person-service -o yaml
+$ oc get deployment person-service -o yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -74,11 +74,11 @@ Just pipe the output into a new `.yaml` file and you’re done. You can directly
 Do the same with `Route` and `Service`. That’s all for now. You’re now able to create your app in a new namespace by entering:
 
 ```bash
-$> oc new-project book-test
-$> oc policy add-role-to-user system:image-puller system:serviceaccount:book-test:default --namespace=book-dev
-$> oc apply -f raw-kubernetes/service.yaml
-$> oc apply -f raw-kubernetes/deployment.yaml
-$> oc apply -f raw-kubernetes/route.yaml
+$ oc new-project book-test
+$ oc policy add-role-to-user system:image-puller system:serviceaccount:book-test:default --namespace=book-dev
+$ oc apply -f raw-kubernetes/service.yaml
+$ oc apply -f raw-kubernetes/deployment.yaml
+$ oc apply -f raw-kubernetes/route.yaml
 ```
 
 The `oc policy` command is necessary to grant the `book-test` namespace access the image in the namespace `book-dev`. Without this command, you’d get an error message in OpenShift saying that the image was not found, unless you are entering commands as an admin user.
@@ -95,13 +95,13 @@ To maintain different versions of configuration files, the first tool that most 
 There are many ports available for most operating systems. On macOS, you can  install it via [Homebrew][2]:
 
 ```bash
-$> brew install yq
+$ brew install yq
 ```
 
 To read the name of the image out of the `Deployment` file, you could enter:
 
 ```bash
-$>  yq e '.spec.template.spec.containers[0].image' \
+$  yq e '.spec.template.spec.containers[0].image' \
 raw-kubernetes/deployment.yaml \
 image-registry.openshift-image-registry.svc:5000/book-dev/person-service@
 ```
@@ -109,7 +109,7 @@ image-registry.openshift-image-registry.svc:5000/book-dev/person-service@
 To change the name of the image, you could enter:
 
 ```bash
-$> yq e -i '.spec.template.spec.containers[0].image = "image-registry.openshift-image-registry.svc:5000/book-dev/person-service:latest"' raw-kubernetes/deployment.yaml
+$ yq e -i '.spec.template.spec.containers[0].image = "image-registry.openshift-image-registry.svc:5000/book-dev/person-service:latest"' raw-kubernetes/deployment.yaml
 ```
 
 This command updates the `Deployment` in place, changing the name of the image to `person-service:latest`.
@@ -193,9 +193,9 @@ parameters:
 
 Now for the biggest convenience offered by OpenShift Templates: Once you have instantiated a template in an OpenShift namespace, you can used the template to create applications within the graphical user interface (UI). 
 ```bash
-$> oc new-project book-template
-$> oc policy add-role-to-user system:image-puller system:serviceaccount:book-template:default --namespace=book-dev
-$> oc apply -f ocp-template/service-template.yaml
+$ oc new-project book-template
+$ oc policy add-role-to-user system:image-puller system:serviceaccount:book-template:default --namespace=book-dev
+$ oc apply -f ocp-template/service-template.yaml
 template.template.openshift.io/service-template created
 ```
 
@@ -212,7 +212,7 @@ Then click on **Create**. After a short time, you should see the application’s
 There are also several ways to create an application instance out of a template without the UI of OpenShift. You can run an `oc`command to do the work within OpenShift:
 
 ```bash
-$> oc new-app service-template -p APPLICATION_NAME=simple-service 
+$ oc new-app service-template -p APPLICATION_NAME=simple-service 
 --> Deploying template "book-template/service-template" to project book-template
 
      * With parameters:
@@ -231,7 +231,7 @@ $> oc new-app service-template -p APPLICATION_NAME=simple-service
 Finally, you can process the template locally:
 
 ```bash
-$> oc process service-template APPLICATION_NAME=process-service -o yaml | oc apply -f -
+$ oc process service-template APPLICATION_NAME=process-service -o yaml | oc apply -f -
 route.route.openshift.io/process-service created
 service/process-service created
 deployment.apps/process-service created
@@ -258,7 +258,7 @@ Kustomize was originally founded by Google and is now a subproject of Kubernetes
 Let’s have a look at the files in a Kustomize directory:
 
 ```bash
-$> tree kustomize
+$ tree kustomize
 kustomize
 ├── base
 │   ├── deployment.yaml
@@ -300,8 +300,8 @@ This file defines the resources for the deployment (`Deployment`, `Service` and 
 The following commands process the files and deploy our application on OpenShift:
 
 ```bash
-$> oc new-project book-kustomize
-$> oc apply -k kustomize/overlays/dev
+$ oc new-project book-kustomize
+$ oc apply -k kustomize/overlays/dev
 service/dev-person-service created
 deployment.apps/dev-person-service created
 route.route.openshift.io/dev-person-service created
@@ -310,7 +310,7 @@ route.route.openshift.io/dev-person-service created
 If you have installed the Kustomize command-line too (for example with `brew install kustomize` on macOS), you’re able to debug the output:
 
 ```bash
-$> kustomize build kustomize/overlays/dev
+$ kustomize build kustomize/overlays/dev
 apiVersion: v1
 kind: Service
 metadata:
@@ -363,13 +363,13 @@ Kustomize fields such as `commonLabels` or `commonAnnotations` can specify label
 The following command merges the files together for the staging overlay. 
 
 ```bash
-$> kustomize build kustomize/overlays/stage
+$ kustomize build kustomize/overlays/stage
 ```
 
 The following output shows that all files have `staging-` as name prefix. Additionally, the configuration has a new `commonLabel`(`variant: staging`) and annotation (`note: we are on staging now`).
 
 ```bash
-$> kustomize build kustomize/overlays/stage
+$ kustomize build kustomize/overlays/stage
 [...]
 
 apiVersion: apps/v1
@@ -436,7 +436,7 @@ spec:
 But the global `org`label is still specified. You can deploy the stage to OpenShift with the command:
 
 ```bash
-$> oc apply -k kustomize/overlays/stage
+$ oc apply -k kustomize/overlays/stage
 ```
 
 
@@ -551,7 +551,7 @@ Starting with Kubernetes release 1.21 (which is reflected in OpenShift 4.8.x), `
 Before Kubernetes 1.21 (OpenShift 4.7.x and before) `oc apply -k` does not contain recent Kustomize features. So if you want to use those features, you need to use the `kustomize` command-line tool and pipe the output to `oc apply -f`.
 
 ```bash
-$> kustomize build kustomize-ext/overlays/stage | oc apply -f -
+$ kustomize build kustomize-ext/overlays/stage | oc apply -f -
 ```
 
 For more information and even more sophisticated examples, have a look at the  [Kustomize home page][4] as well as the examples in the official [GitHub.com repository][5].

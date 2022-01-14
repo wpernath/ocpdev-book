@@ -24,7 +24,7 @@ To summarize: A pipeline contains a list of tasks, each of which contain a list 
 Tekton comes with a command-line tool called `tkn`, which you can easily install on macOS by issuing:
 
 ```bash
-$> brew install tektoncd-cli
+$ brew install tektoncd-cli
 ```
 
 Please check the official homepage of Tekton to see how to install the tool on other operating systems.
@@ -62,7 +62,7 @@ Of course, you could also use other tools to create your container image inside 
 > **NOTE**: Make sure that your Quarkus application is using the required Quarkus extension called `container-image-jib`. If your `pom.xml` file does not include the `quarkus-container-image-jib` dependency, add it by executing:
 
 ```bash
-$> mvn quarkus:add-extension -Dextensions="container-image-jib"
+$ mvn quarkus:add-extension -Dextensions="container-image-jib"
 [INFO] Scanning for projects...
 [INFO]
 [INFO] -------------------< org.wanja.book:person-service >--------------------
@@ -91,13 +91,13 @@ Then have a look at Figure 3 to see what properties need to be set to let Quarku
 Now check out the [source code][10], have a look at `person-service/src/main/resources/application.properties`, change the image property to meet your needs, and issue:
 
 ```bash
-$> mvn clean package -DskipTests
+$ mvn clean package -DskipTests
 ```
 
 This command compiles the sources and builds the container image. If you want to push the resulting image to your registry, simply call:
 
 ```bash
-$> mvn package -DskipTests -Dquarkus.container-image.push=true
+$ mvn package -DskipTests -Dquarkus.container-image.push=true
 ```
 
 After a while, Quarkus will generate and push your image to your registry. In my case, it’s `quay.io/wpernath/person-service?`.
@@ -113,9 +113,9 @@ To create our use case, we need to have the following tasks available:
 Let’s log into our OpenShift cluster, create a new project and list all the available ClusterTasks:
 
 ```bash
-$> oc login .....
-$> oc new-project book-tekton
-$> tkn ct list
+$ oc login .....
+$ oc new-project book-tekton
+$ tkn ct list
 ```
 
 Figure 4 shows all the available ClusterTasks created after you install the OpenShift Pipelines Operator. It seems we have most of what we need:
@@ -133,7 +133,7 @@ Wait—what is the difference between a task and a ClusterTask? The answer is ea
 If you want to have a look at the structure of a task, you can easily do so by executing the following command:
 
 ```bash
-$> tkn ct describe <task-name>
+$ tkn ct describe <task-name>
 ```
 
 The output explains all the parameters of the task, together with other necessary information such as its inputs and outputs.
@@ -179,7 +179,7 @@ We want to use the `maven` task twice, using the `package` goal:
 Once you’ve done all that and have clicked on the **Save** button, you’re able to export the YAML file by executing:
 
 ```bash
-$> oc get pipeline/build-and-push-image -o yaml > tekton/pipelines/build-and-push-image.yaml
+$ oc get pipeline/build-and-push-image -o yaml > tekton/pipelines/build-and-push-image.yaml
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
@@ -196,7 +196,7 @@ spec:
 You can easily re-import the pipeline file by executing:
 
 ```bash
-$> oc apply -f tekton/pipelines/build-and-push-image.yaml
+$ oc apply -f tekton/pipelines/build-and-push-image.yaml
 ```
 
 ### Placement of task parameters
@@ -264,7 +264,7 @@ The build step uses the Kustomize image to set the new image and digest. The app
 To load the `kustomize-task.yaml` file into your current OpenShift project, simply execute:
 
 ```bash
-$> oc apply -f kustomize-task.yaml
+$ oc apply -f kustomize-task.yaml
 task.tekton.dev/kustomize configured
 ```
 
@@ -277,13 +277,13 @@ Now we have to create the PersistentVolumeClaim (PVC) and a `maven-settings` Con
 If you have a working `maven-settings` file, you can easily reuse it with the maven task. Simply create it via:
 
 ```bash
-$> oc create cm maven-settings --from-file=/your-maven-settings --dry-run=client -o yaml > maven-settings-cm.yaml
+$ oc create cm maven-settings --from-file=/your-maven-settings --dry-run=client -o yaml > maven-settings-cm.yaml
 ```
 
 If you need to edit the ConfigMap, feel free to do it right now and then execute:
 
 ```bash
-$> oc apply -f maven-settings-cm.yaml
+$ oc apply -f maven-settings-cm.yaml
 ```
 
 To import the ConfigMap into your current project.
@@ -316,13 +316,13 @@ Once you have imported all your artifacts into your current project, you can run
 The **Logs** and **Events** cards of the OpenShift Pipeline Editor show, well, all the logs and events. If you prefer to view these things from the command line, use `tkn` to follow the logs of the PipelineRun:
 
 ```bash
-$> tkn pr
+$ tkn pr
 ```
 
 The output shows the available actions for PipelineRuns.
 
 ```bash
-$> tkn pr list
+$ tkn pr list
 NAME                                       STARTED        DURATION     STATUS
 build-and-push-image-run-20211123-091039   1 minute ago   54 seconds   Succeeded
 build-and-push-image-run-20211122-200911   13 hours ago   2 minutes   Succeeded
@@ -331,7 +331,7 @@ build-and-push-image-ru0vni                13 hours ago   8 minutes    Failed
 
 To follow the logs of the last run, simply execute:
 ```bash
-$> tkn pr logs -f -L
+$ tkn pr logs -f -L
 ```
 
 If you omit the `-L` option, `tkn` lets you choose from the list of PipelineRuns.
@@ -408,7 +408,7 @@ So you have to provide a `subdirectory` parameter (in my case, I used a global `
 The changes discussed in this section reduce our maven calls dramatically, in my case from 8 minutes to 54 seconds:
 
 ```bash
-$> tkn pr list
+$ tkn pr list
 NAME					   STARTED        DURATION     STATUS
 build-and-push-image-123   1 minute ago   54 seconds   Succeeded
 build-and-push-image-ru0   13 hours ago   8 minutes    Succeeded
