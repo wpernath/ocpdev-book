@@ -6,8 +6,8 @@ This is a repository with all the sources for the Book "GitOps with OpenShift fr
 
 |Chapter|Status|
 |--------|--------|
-|Foreword | Currently being written by Florian|
-|Introduction | REVIEW|
+|Foreword | FINAL REVIEW|
+|Introduction | FINAL REVIEW|
 |Using the Examples | REVIEW|
 |Chapter 1 | FINAL REVIEW|
 |Chapter 2 | FINAL REVIEW|
