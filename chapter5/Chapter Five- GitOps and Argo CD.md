@@ -715,7 +715,7 @@ spec:
 
 ```
 
-This hook just runs a simple job that checks to see whether there is any data in the PostgreSQL database and, if not, uses the `person-service` to create data. The only difference between this sync and a "normal" job is the `argocd.argoproj.io/hook` annotation.
+This hook just runs a simple job that checks to see whether there is any data in the PostgreSQL database and, if not, uses the `person-service` to create data. The only difference between this sync and a "normal" Kubernetes `Job` is the `argocd.argoproj.io/hook` annotation.
 
 As a result of a successful synchronization, you could also start a Tekton PipelineRun or any Kubernetes resource that is already registered in your cluster.
 
