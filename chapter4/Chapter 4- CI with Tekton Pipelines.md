@@ -202,14 +202,45 @@ $ oc apply -f tekton/pipelines/build-and-push-image.yaml
 ### Placement of task parameters
 One of the goals of Tekton has always been to provide tasks and pipelines that are as reusable as possible. This means making each task as general-purpose as possible.
 
-If you’re providing the necessary parameters directly to each task, you might repeat the settings over and over again (for example, in our case, we are using the Maven task for compiling, packaging, image generation, and pushing). In this case it makes sense to draw the parameters out of the specification of each task. Put them on the pipeline level under an property called `params` (Figure 7) and reference them inside the corresponding task by specifying them by their name in the syntax `$(params.parameter-name)`.
+If you’re providing the necessary parameters directly to each task, you might repeat the settings over and over again (for example, in our case, we are using the Maven task for compiling, packaging, image generation, and pushing). In this case it makes sense to draw the parameters out of the specification of each task. Put them on the pipeline level under a property called `params` (see listing below) and reference them inside the corresponding task by specifying them by their name in the syntax `$(params.parameter-name)`.
 
-![Image 7: The pipeline file as exported after using the GUI with top level parameters][image-7]
+```yaml
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-and-push-image
+spec:
+  params:
+    - default: 'https://github.com/wpernath/book-example.git'
+      description: Source to the GIT
+      name: git-url
+      type: string
+    - default: main
+      description: revision to be used
+      name: git-revision
+      type: string
+[...]
+  tasks:
+    - name: git-clone
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+[...]
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+[...]
+```
 
 ### Creating a new task: kustomize
 Remember that our default OpenShift Pipelines Operator installation didn't include Kustomize. Because we want to use it to apply the new image to our Deployment, we have to look for a proper task in [Tekton Hub][12]. Unfortunately, there doesn’t seem to be one available, so we have to create our own.
 
-For this, we first need to have a proper image which contains the `kustomize` executable. The Dockerfile for this project is available in the [kustomize-ubi repository on GitHub][13] and the image is available in [its repository on Quay.io][14].
+For this, we first need to have a proper image which contains the `kustomize` executable. The `Dockerfile` for this project is available in the [kustomize-ubi repository on GitHub][13] and the image is available in [its repository on Quay.io][14].
 
 Now let’s create a new Tekton task:
 
@@ -310,8 +341,8 @@ spec:
 This file reserves a PVC with the name `builder-pvc` and a requested storage of 10GB. It’s important to use `persistentVolumeReclaimPolicy: Retain` here, as we want to reuse build artifacts from the previous builds. More on this requirement later in this chapter.
 
 ## Running the pipeline
-Once you have imported all your artifacts into your current project, you can run the pipeline. To do so, click on the **Pipelines** entry on the left side of the Developer Perspective of OpenShift, choose your created pipeline, and select **Start** from the **Actions** menu on the right side. After you’ve filled in all necessary parameters (Figure 8), you’re able to start the PipelineRun.
-![Image 8: Starting the pipeline with all parameters][image-8]
+Once you have imported all your artifacts into your current project, you can run the pipeline. To do so, click on the **Pipelines** entry on the left side of the Developer Perspective of OpenShift, choose your created pipeline, and select **Start** from the **Actions** menu on the right side. After you’ve filled in all necessary parameters (Figure 7), you’re able to start the PipelineRun.
+![Image 7: Starting the pipeline with all parameters][image-7]
 
 The **Logs** and **Events** cards of the OpenShift Pipeline Editor show, well, all the logs and events. If you prefer to view these things from the command line, use `tkn` to follow the logs of the PipelineRun:
 
@@ -397,9 +428,9 @@ I have created a new Maven task (`maven-caching`), which you can find in the [bo
 
 As Figure 9 shows, we now have only two parameters: `GOALS` and `CONTEXT_DIR`.
 
-![Image 9: Simplified Maven task][image-9]
+![Image 8: Simplified Maven task][image-8]
 
-The important setting for the `maven` call is shown in the second red box of Figure 9. It simply calls `maven` with the `maven-settings` property and with the parameter indicating where to store the downloaded artifacts.
+The important setting for the `maven` call is shown in the second red box of Figure 8. It simply calls `maven` with the `maven-settings` property and with the parameter indicating where to store the downloaded artifacts.
 
 One note on artifact storage: During my tests of this example, I realized that if the `git-clone` task clones the source to the root directory of the PVC (when no `subdirectory` parameter is given on task execution), the next start of the pipeline will delete everything from the PVC again. And in that case, we once again have no artifact cache.
 
@@ -444,12 +475,11 @@ The next chapter of this book discusses Tekton security, as well as GitOps and A
 [15]:	https://raw.githubusercontent.com/wpernath/book-example/main/tekton/tasks/maven-task.yaml
 [16]:	https://tekton.dev/docs/pipelines/auth/
 
-[image-1]:	Bildschirmfoto%202021-07-02%20um%2012.20.33.png
-[image-2]:	Bildschirmfoto%202021-07-02%20um%2012.25.29.png
-[image-3]:	quarkus-app-props.png
-[image-4]:	Bildschirmfoto%202021-07-08%20um%2007.41.24.png
-[image-5]:	Bildschirmfoto%202021-07-13%20um%2015.00.18.png
-[image-6]:	DraggedImage.png
-[image-7]:	Bildschirmfoto%202021-07-19%20um%2009.54.39.png
-[image-8]:	pipeline-run.png
-[image-9]:	Bildschirmfoto%202021-07-20%20um%2011.30.29.png
+[image-1]:	file:///Users/wpernath/Devel/ocpdev-book/chapter4/1-install-pipelines-operator.png
+[image-2]:	file:///Users/wpernath/Devel/ocpdev-book/chapter4/2-installed-pipelines-operator.png
+[image-3]:	file:///Users/wpernath/Devel/ocpdev-book/chapter4/3-quarkus-app-props.png
+[image-4]:	file:///Users/wpernath/Devel/ocpdev-book/chapter4/4-all-cluster-tasks.png
+[image-5]:	file:///Users/wpernath/Devel/ocpdev-book/chapter4/5-pipeline-builder.png
+[image-6]:	file:///Users/wpernath/Devel/ocpdev-book/chapter4/6-linking-workspaces.png
+[image-7]:	file:///Users/wpernath/Devel/ocpdev-book/chapter4/7-pipeline-run.png
+[image-8]:	file:///Users/wpernath/Devel/ocpdev-book/chapter4/8-simplified-maven-task.png
