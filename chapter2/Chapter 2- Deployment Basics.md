@@ -68,8 +68,39 @@ metadata:
 [...]
 ```
 
-Just pipe the output into a new `.yaml` file and you’re done. You can directly use this file to create your app in a new namespace (except for the image section). But the generated file contains a lot of text you don’t need, so it’s a good idea to pare it down. For example, you can safely remove the  `managedFields` section, big parts of the `metadata` section at the beginning and the `status` section at the end of each file. After stripping the file down to the relevant parts (Image 1), add it to your Git repository.
- ![Image 1: A stripped down deployment.yaml file after exporting it. Note the marked section!][image-1]
+Just pipe the output into a new `.yaml` file and you’re done. You can directly use this file to create your app in a new namespace (except for the image section). But the generated file contains a lot of text you don’t need, so it’s a good idea to pare it down. For example, you can safely remove the  `managedFields` section, big parts of the `metadata` section at the beginning and the `status` section at the end of each file. After stripping the file down to the relevant parts (see listing below), add it to your Git repository.
+ 
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: person-service
+  name: person-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: person-service
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        deployment: person-service
+    spec:
+      containers:
+        - image: image-registry.openshift-image-registry.svc:5000/book-dev/person-service:latest
+          imagePullPolicy: IfNotPresent
+          name: person-service
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+      restartPolicy: Always
+```
 
 Do the same with `Route` and `Service`. That’s all for now. You’re now able to create your app in a new namespace by entering:
 
@@ -109,7 +140,8 @@ image-registry.openshift-image-registry.svc:5000/book-dev/person-service@
 To change the name of the image, you could enter:
 
 ```bash
-$ yq e -i '.spec.template.spec.containers[0].image = "image-registry.openshift-image-registry.svc:5000/book-dev/person-service:latest"' raw-kubernetes/deployment.yaml
+$ yq e -i '.spec.template.spec.containers[0].image = "image-registry.openshift-image-registry.svc:5000/book-dev/person-service:latest"' \
+raw-kubernetes/deployment.yaml
 ```
 
 This command updates the `Deployment` in place, changing the name of the image to `person-service:latest`.
@@ -138,10 +170,8 @@ So let’s discuss other solutions.
 
 ## OpenShift Templates
 OpenShift Templates provides an easy way to create a single file out of the required configuration files and add customizable parameters to the unified file. As the name indicates, the service is offered only on OpenShift and is not portable to a generic Kubernetes environment.
- 
-![Image 2: An OpenShift Template file][image-2]
 
-First, create all the standard configurations shown near the beginning of this chapter (such as `route.yaml`, `deployment.yaml` and `service.yaml`), although you don’t have to separate the configurations into specific files. Next, to create a new template file, open your preferred editor and create a file called `template.yaml` (Image 2). The header of that file should look like this:
+First, create all the standard configurations shown near the beginning of this chapter (such as `route.yaml`, `deployment.yaml` and `service.yaml`), although you don’t have to separate the configurations into specific files. Next, to create a new template file, open your preferred editor and create a file called `template.yaml`. The header of that file should look like this:
 
 ```bash
 apiVersion: template.openshift.io/v1
@@ -192,6 +222,7 @@ parameters:
 ```
 
 Now for the biggest convenience offered by OpenShift Templates: Once you have instantiated a template in an OpenShift namespace, you can used the template to create applications within the graphical user interface (UI). 
+
 ```bash
 $ oc new-project book-template
 $ oc policy add-role-to-user system:image-puller system:serviceaccount:book-template:default --namespace=book-dev
@@ -199,13 +230,13 @@ $ oc apply -f ocp-template/service-template.yaml
 template.template.openshift.io/service-template created
 ```
 
-Just open the OpenShift web console now, choose the project and click **+Add** and choose the **Developer Catalog**. You should be able to find a template called `service-template` (Image 3). This is the one we’ve created. 
+Just open the OpenShift web console now, choose the project and click **+Add** and choose the **Developer Catalog**. You should be able to find a template called `service-template` (Image 1). This is the one we’ve created. 
 
-![Image 3: The Developer Catalog after adding the template ][image-3]
+![Image 1: The Developer Catalog after adding the template ][image-1]
 
-Instantiate the template and fill in the required fields (Image 4). 
+Instantiate the template and fill in the required fields (Image 2). 
 
-![Image 4: Template instantiation with required fields][image-4]
+![Image 2: Template instantiation with required fields][image-2]
 
 Then click on **Create**. After a short time, you should see the application’s deployment progressing. Once it is finished, you should be able to access the route of the application.
 
@@ -239,7 +270,7 @@ deployment.apps/process-service created
 
 Whatever method you choose to process the template, results show up in your Topology view for the project (Image 5). 
 
-![Image 5: OpenShift UI after using several ways of using the template][image-5]
+![Image 3: OpenShift UI after using several ways of using the template][image-3]
 
 Creating and maintaining an OpenShift Template is fairly easy. Parameters can be created and set in intuitive ways. I personally like the deep integration into OpenShift’s developer console and the `oc` command. 
 
@@ -574,8 +605,6 @@ The next chapter is about Helm Charts and Kubernetes Operators for application p
 [4]:	https://kustomize.io/
 [5]:	https://github.com/kubernetes-sigs/kustomize/tree/master/examples
 
-[image-1]:	Bildschirmfoto%202021-10-15%20um%2008.38.41.png
-[image-2]:	Bildschirmfoto%202021-10-15%20um%2011.45.08.png
-[image-3]:	Bildschirmfoto%202021-10-15%20um%2011.28.02.png
-[image-4]:	Bildschirmfoto%202021-10-15%20um%2011.28.45.png
-[image-5]:	Bildschirmfoto%202021-10-15%20um%2011.40.17.png
+[image-1]:	file:///Users/wpernath/Devel/ocpdev-book/chapter2/developer-catalog-template.png
+[image-2]:	file:///Users/wpernath/Devel/ocpdev-book/chapter2/template-instantiation.png
+[image-3]:	file:///Users/wpernath/Devel/ocpdev-book/chapter2/topology-view-template.png

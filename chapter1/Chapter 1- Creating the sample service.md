@@ -1,5 +1,5 @@
 # Chapter 1: Creating the sample service
-This books needs a good example to demonstrate the power of working with Kubernetes and OpenShift. As an application that will be familiar and useful to most readers, we’ll create a REST-based micros ervice in Java that reads data from and writes data to a database.
+This books needs a good example to demonstrate the power of working with Kubernetes and OpenShift. As an application that will be familiar and useful to most readers, we’ll create a REST-based micro service in Java that reads data from and writes data to a database.
 
 I have to say, I like [Quarkus][1]. I have been coding for over two decades with Java and JEE. I have been using most of the frameworks out there (does anyone remember Struts or JBoss Seam or SilverStream?). I’ve even created code generators to make my life easier with EJBs (1.x and 2.x). But all of those frameworks and ideas had one thing in common: they tried to minimize the efforts for the developers but they had other drawbacks.
 

@@ -16,7 +16,7 @@ As already briefly described, in order to externally distribute an application i
 You can easily get a free account on Quay.io, but it must be publicly accessible. That means everybody can read your repositories, but only you or people whom you specifically grant permissions to can write to the repositories.
 
 ### The Docker and Podman build tools
-Along with creating an account on Quay.io, install either [Docker][4] or [Podman][5] on your local machine. This section offers an introduction to building and image and uploading it to your repository with those tools
+Along with creating an account on Quay.io, install either [Docker][4] or [Podman][5] on your local machine. This section offers an introduction to building an image and uploading it to your repository with those tools
 
 #### Docker versus Podman and Buildah
 Docker was a game-changing technology when it was first introduced in the early 2010 decade. It made containers a mainstream technology, before Google released Kubernetes.
@@ -31,7 +31,7 @@ Podman internally uses [Buildah][7] to build container images. According to the 
 
 To build a container image inside OpenShift (for example, using [Source-to-Image (S2I)][10] or a Tekton pipeline), you should directly use Buildah instead.
 
-Because everything you need to do with Buildah is part of Podman anyway, there is no CLI client for macOS or Windows available. The documentation states to use Podman instead.
+But as everything you can do with Buildah is part of Podman anyway, there is no CLI client for macOS or Windows available. The documentation states to use Podman instead.
 
 #### Your first build
 With Docker or Podman in place, along with a repository on Quay.io or another service, check out the [demo repository for this article][11]. In `person-service/src/main/docker` you can find the file that configures builds for your application. The file is called simply `Dockerfile`. To build the demo application, based on the Quarkus Java framework, change into the top-level directory containing the demo files. Then enter the following commands, plugging in your Quay.io username and password:
@@ -56,7 +56,7 @@ When your image is ready, you need to push the image to your repository:
 $ docker push quay.io/wpernath/person-service -a
 ```
 
-This will push all (`-a`) locally stored images to the repository, including all tags. Now you can use the image in your OpenShift environment (Figure 1).
+This will push all (`-a`) locally stored images to the external repository, including all tags (Figure 1). Now you can use the image in your OpenShift environment .
 
 ![Image 1: The person-service on quay.io after you've pushed it via docker push ][image-1]
 And that's it. This workflow works for all Docker-compliant registries.
@@ -67,6 +67,7 @@ Because Docker or Podman are only incidental to this chapter, I will move on to 
 Now that you have your image stored in Quay.io, test it to see whether everything has successfully worked out. For this, you are going to use our Kustomize example from the previous chapter.
 
 First of all, make sure that the `kustomize-ext/overlays/dev/kustomization.yaml` file looks like this:
+
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -739,8 +740,8 @@ The next chapter of this book will talk about Tekton pipelines as a form of inte
 [24]:	https://sdk.operatorframework.io/docs/installation/ "Install Operator-SDK"
 [25]:	https://sdk.operatorframework.io/docs/building-operators/helm/tutorial/ "SDK tutorial"
 
-[image-1]:	Bildschirmfoto%202021-10-26%20um%2008.19.12.png
-[image-2]:	Bildschirmfoto%202021-10-26%20um%2009.57.18.png
-[image-3]:	Bildschirmfoto%202021-10-25%20um%2017.12.05.png
-[image-4]:	Bildschirmfoto%202021-05-20%20um%2022.06.03.png
-[image-5]:	Bildschirmfoto%202021-10-27%20um%2018.49.28.png
+[image-1]:	file:///Users/wpernath/Devel/ocpdev-book/chapter3/1-person-service-on-quayio.png
+[image-2]:	file:///Users/wpernath/Devel/ocpdev-book/chapter3/2-event-log-openshift.png
+[image-3]:	file:///Users/wpernath/Devel/ocpdev-book/chapter3/3-helm-chart-release-ocp.png
+[image-4]:	file:///Users/wpernath/Devel/ocpdev-book/chapter3/4-building-operator-bundle.png
+[image-5]:	file:///Users/wpernath/Devel/ocpdev-book/chapter3/5-installed-operators.png
