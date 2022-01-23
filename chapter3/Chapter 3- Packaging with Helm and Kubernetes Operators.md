@@ -9,21 +9,21 @@ Distribution takes place on two levels:
 - *External* distribution: making your containerized application available for customers or other third parties. That is the subject of this chapter.
 
 These types of distribution have much in common. In fact, before you can make my apps available for others (external distribution), you might have to put it into the local CI/CD chain (internal distribution). Kubernetes is there to automate most of the tasks.
- 
-## Using an external registry with Docker or Podman
-As already briefly described, in order to externally distribute an application in the modern, generally expected manner, you need a repository. The repository could be either a public image repository such as [Quay.io][1] or [Docker Hub][2], or a private repository that is accessible by your customers. This chapter uses the [Quay.io][3] public repository for its examples, but the principles and most of the commands apply to other types of repositories as well.
 
-You can easily get a free account on Quay.io, but it must be publicly accessible. That means everybody can read your repositories, but only you or people whom you specifically grant permissions to can write to the repositories.
+## Using an external registry with Docker or Podman
+As already briefly described, in order to externally distribute an application in the modern and generally expected manner, you need a repository. The repository could be either a public image repository such as [Quay.io][1] or [Docker Hub][2], or a private repository that is accessible by your customers. This chapter uses the [Quay.io][3] public repository for its examples, but the principles and most of the commands apply to other types of repositories as well.
+
+You can easily get a free account on Quay.io, but it must be publicly accessible. That means everybody can read your repositories, but only you or people to whom you specifically grant permissions can write to the repositories.
 
 ### The Docker and Podman build tools
-Along with creating an account on Quay.io, install either [Docker][4] or [Podman][5] on your local machine. This section offers an introduction to building an image and uploading it to your repository with those tools
+Along with creating an account on Quay.io, install either [Docker][4] or [Podman][5] on your local machine. This section offers an introduction to building an image and uploading it to your repository with those tools.
 
 #### Docker versus Podman and Buildah
 Docker was a game-changing technology when it was first introduced in the early 2010 decade. It made containers a mainstream technology, before Google released Kubernetes.
 
 However, Docker requires a daemon to run on the system hosting the tool, and therefore must be run with root (privileged) access. This is usually unfeasible in Kubernetes, and certainly on Red Hat OpenShift.
 
-Podman was then invented and became a popular replacement for Docker. Podman performs basically the same tasks as Docker and has a compatible interface where almost all the commands and arguments are the same. Podman is very lightweight, and — crucially — can be run as an ordinary user account without a daemon.
+Podman was then invented and became a popular replacement for Docker. Podman performs basically the same tasks as Docker and has a compatible interface where almost all the commands and arguments are the same. Podman is very lightweight, and—crucially—can be run as an ordinary user account without a daemon.
 
 However, Podman currently runs only on GNU/Linux. If you are working on a Windows or macOS system, you have to [set up a remote Linux system to use Podman][6].
 
@@ -31,7 +31,7 @@ Podman internally uses [Buildah][7] to build container images. According to the 
 
 To build a container image inside OpenShift (for example, using [Source-to-Image (S2I)][10] or a Tekton pipeline), you should directly use Buildah instead.
 
-But as everything you can do with Buildah is part of Podman anyway, there is no CLI client for macOS or Windows available. The documentation states to use Podman instead.
+But because everything you can do with Buildah is part of Podman anyway, there is no CLI client for macOS or Windows. The documentation states to use Podman instead.
 
 #### Your first build
 With Docker or Podman in place, along with a repository on Quay.io or another service, check out the [demo repository for this article][11]. In `person-service/src/main/docker` you can find the file that configures builds for your application. The file is called simply `Dockerfile`. To build the demo application, based on the Quarkus Java framework, change into the top-level directory containing the demo files. Then enter the following commands, plugging in your Quay.io username and password:
@@ -42,7 +42,7 @@ $ mvn clean package -DskipTests
 $ docker build -f src/main/docker/Dockerfile.jvm -t quay.io/wpernath/person-service .
 ```
 
-The first command logs into your Quay.io account. The second command builds the application with [Maven][12]. The third, finally, creates a docker image out of the app. If you choose to use Podman, simply substitute `podman` for `docker` in your Docker commands, because Podman supports the same arguments. You could also make scripts that invoke Docker run with Podman instead, by aliasing the string `docker` to `podman`:
+The first command logs into your Quay.io account. The second command builds the application with [Maven][12]. The third, finally, creates a Docker image out of the app. If you choose to use Podman, simply substitute `podman` for `docker` in your Docker commands, because Podman supports the same arguments. You could also make scripts that invoke Docker run with Podman instead, by aliasing the string `docker` to `podman`:
 
 ```bash
 $ alias docker=podman
@@ -118,7 +118,7 @@ route.route.openshift.io/dev-person-service created
 The resulting event log should look like Image 2.
 ![Image 2: Event log for dev-person-service ][image-2]
 
-If you're on any other operating system than Linux, Podman is a little bit complicated to use right now. The difficulty is not with about the command-line (CLI) tool. The `podman` CLI in most cases is identical to the `docker` CLI. Instead, the difficulty lies in installation, configuration, and integration into non-Linux operating systems.
+If you're on any other operating system than Linux, Podman is a little bit complicated to use right now. The difficulty is not with the (CLI) tool. The `podman` CLI in most cases is identical to the `docker` CLI. Instead, the difficulty lies in installation, configuration, and integration into non-Linux operating systems.
 
 This is unfortunate, because Podman is much more lightweight than Docker. And Podman does not require root access. So if you have some time—or are already developing your applications on Linux—try to set up Podman. If not, continue to use Docker.
 
@@ -140,12 +140,12 @@ $ skopeo copy \
 But you can also use Skopeo to mirror a complete repository by copying all images in one go.
 
 ### Next steps after building the application
-Now that your image is stored in a remotely accessible repository, you can start thinking about how to let a third party easily install your application. Two mechanisms are popular for this task: the [Helm chart][15] project and a [Kubernetes Operator][16]. The rest of this chapter introduces these tools.
+Now that your image is stored in a remotely accessible repository, you can start thinking about how to let a third party easily install your application. Two mechanisms are popular for this task: [Helm charts][15] and a [Kubernetes Operator][16]. The rest of this chapter introduces these tools.
 
 ## Helm Charts
-Think about Helm charts as a package manager for Kubernetes applications, like RPM or Deb for Linux. Once a Helm chart is created and hosted on a repository, everyone is able to install, update, and delete your chart from a running Kubernetes installation.
+Think about Helm charts as a package manager for Kubernetes applications, like RPM or `.deb` files for Linux. Once a Helm chart is created and hosted on a repository, everyone is able to install, update, and delete your chart from a running Kubernetes installation.
 
-Let's first have a look on how to create a Helm chart to install your application on OpenShift.
+Let's first have a look at how to create a Helm chart to install your application on OpenShift.
 
 First of all, you need to download and [install the Helm CLI][17]. On macOS you can easily do this via:
 
@@ -227,7 +227,7 @@ REVISION: 1
 TEST SUITE: None
 ```
 
-If you go now to the OpenShift console, you should see the Helm release (Image 3).
+If you now go to the OpenShift console, you should see the Helm release (Image 3).
 ![Image 3: OpenShift Console with our Helm Chart][image-3]
 
 You can get the same overview via the command line. The first command that follows shows a list of all installed Helm charts in your namespace. The second command provides the update history of a given Helm chart.
@@ -249,7 +249,7 @@ REVISION: 7
 TEST SUITE: None
 ```
 
-The `rollback` argument helps you to return to a specified revision of the installed chart. First get the history of the installed chart by entering:
+The `rollback` argument helps you return to a specified revision of the installed chart. First get the history of the installed chart by entering:
 ```bash
 $ helm history person-service
 REVISION	UPDATED                 	STATUS    	CHART               	APP VERSION	DESCRIPTION
@@ -272,14 +272,14 @@ REVISION	UPDATED                 	STATUS    	CHART               	APP VERSION	DE
 3       	Tue Oct 26 19:25:48 2021	deployed  	person-service-0.0.5	v1.0.0-test	Rollback to 1
 ```
 
-If you are not satisfied with a given chart, you can easily uninstall it by calling:
+If you are not satisfied with a given chart, you can easily uninstall it by running:
 ```bash
 $ helm uninstall person-service
 release "person-service" uninstalled
 ```
 
 ### New content for the chart
-Another nice feature to use with Helm charts is a `NOTES.txt` file in the `helm-chart/templates` folder. This file will be shown right after installation of the chart. And it's also available via the OpenShift user interface (UI) in Developer→Helm→Release Notes). Basically, you can enter your release notes there as a Markdown-formatted text file like the following. The nice thing is that you can insert named parameters defined in the `values.yaml` file:
+Another nice feature to use with Helm charts is a `NOTES.txt` file in the `helm-chart/templates` folder. This file will be shown right after installation of the chart. And it's also available via the OpenShift (UI) in **Developer→Helm→Release Notes**). Basically, you can enter your release notes there as a Markdown-formatted text file like the following. The nice thing is that you can insert named parameters defined in the `values.yaml` file:
 
 ```bash
 # Release NOTES.txt of person-service helm chart
@@ -296,9 +296,7 @@ Another nice feature to use with Helm charts is a `NOTES.txt` file in the `helm-
 - 0.0.5 added a batch Job for post-install and post-upgrade
 ```
 
-Parameters? Yes, of course. Sometimes you need to replace standard settings, as we did with the OpenShift Templates or Kustomize.
-
-Let's have a closer look into the `values.yaml` file:
+Parameters? Yes, of course. Sometimes you need to replace standard settings, as we did with the OpenShift Templates or Kustomize. To unpack the use of parameters, let's have a closer look into the `values.yaml` file:
 ```yaml
 deployment:
     image: quay.io/wpernath/person-service
@@ -322,13 +320,13 @@ data:
     {{ .Values.config.greeting | default "Yeah, it's openshift time" }}
 ```
 
-This `ConfigMap` defines a parameter named `APP_GREETING` with the content of the variable `.Values.config.greeting` (the initial period must be present). If this variable is not defined, the default will be used.
+This ConfigMap defines a parameter named `APP_GREETING` with the content of the variable `.Values.config.greeting` (the initial period must be present). If this variable is not defined, the default will be used.
 
 Helm also defines some [built-in objects][18] with predefined parameters:
-- `.Release` can be used, after the Helm chart is installed in a Kubernetes environment. The parameter defines variables such as `.Name` and `.Namespace`.
+- `.Release` can be used after the Helm chart is installed in a Kubernetes environment. The parameter defines variables such as `.Name` and `.Namespace`.
 - `.Capabilities` provides information about the Kubernetes cluster where the chart is installed.
 - `.Chart` provides access to the content of the `Chart.yaml` file. Any data in that file is accessible.
-- `.Files` provides access to all non-special files in a chart. You can't use this parameter to access template files, but you can use it to read and parse other files in your chart, for example to generate the contents of a `ConfigMap`.
+- `.Files` provides access to all non-special files in a chart. You can't use this parameter to access template files, but you can use it to read and parse other files in your chart, for example to generate the contents of a ConfigMap.
 
 Because [Helm's templating engine][19] is an implementation of the [templating engine][20] of the [Go][21] programming language, you also have access to functions and flow control. For example, if you want to write only certain parts of the `deployment.yaml` file, you can do something like:
 
@@ -338,7 +336,7 @@ Because [Helm's templating engine][19] is an implementation of the [templating e
 {{- end }}
 ```
 
-Do you see the `-` at the beginning of the reference? This is necessary to get a well formatted YAML file after the template has been processed. If you would remove the `-`, you would have empty lines in the YAML.
+Do you see the hyphen (`-`) at the beginning of the reference? This is necessary to get a well formatted YAML file after the template has been processed. If you removed the `-`, you would have empty lines in the YAML.
 
 ### Debugging Templates
 Typically, after you execute `helm install`, all the generated files are sent directly to Kubernetes. A couple commands help you debug your templates first.
@@ -351,10 +349,14 @@ Typically, after you execute `helm install`, all the generated files are sent di
 It is often valuable to include sample data with an application for mocking and testing. But if you want to install a database with example data as part of your Helm chart, you need to find a way of initializing the database. This is where [Helm hooks][22] come into play.
 
 Basically, a hook is just another Kubernetes resource (such as a job or a pod), which gets executed when a certain event is triggered. An event could take place at one of the following points:
-- pre-install, pre-upgrade
-- post-install, post-upgrade
-- pre-delete, post-delete
-- pre-rollback, post-rollback
+- pre-install
+- post-install
+- pre-upgrade
+- post-upgrade
+- pre-delete
+- post-delete
+- pre-rollback
+-  post-rollback
 
 The type of hook gets configured via the `helm.sh/hook` annotation. This annotation allows you to assigns weights to hooks in order to specify the order in which they run. Lower-numbered weights run before higher-number ones, for each type of event.
 
@@ -400,16 +402,14 @@ spec:
                 sleep 10
 ```
 
-As the example shows, you can also execute an arbitrary script as part of the install process.
+As the example shows, you can also execute a script of your design as part of the install process.
 
 ### Subcharts and CRDs
-In Helm, you can define subcharts. Whenever your chart gets installed, all dependent subcharts are installed as well. Just put required subcharts into the `helm/charts` folder.
-
-This could be quite handy, if your application requires the installation of a database or other dependent components. 
+In Helm, you can define subcharts. Whenever your chart gets installed, all dependent subcharts are installed as well. Just put required subcharts into the `helm/charts` folder. This could be quite handy if your application requires the installation of a database or other dependent components.
 
 Subcharts must be installable without the main chart. This means that each subchart has its own `values.yaml` file. You can override the values in the subchart's file within your main chart's `values.yaml`.
 
-If your chart requires the installation of a custom resource definition (CRD)—for example, to install an Operator—simply put the CRD into the `helm/crds` folder of your chart. Keep in mind that Helm does *not* take care of deinstalling any CRDs if you want to deinstall your chart. So installing CRDs with helm is a one-shot operation.
+If your chart requires the installation of a custom resource definition (CRD)—for example, to install an Operator—simply put the CRD into the `helm/crds` folder of your chart. Keep in mind that Helm does *not* take care of deinstalling any CRDs if you want to deinstall your chart. So installing CRDs with Helm is a one-shot operation.
 
 ### Summary of Helm charts
 Creating a Helm chart is quite easy and mostly self-explaining. Features such as hooks help you do some initialization after installation.
@@ -434,14 +434,18 @@ Of course, this makes an Operator way more complex than a Helm chart, because al
 - Create it from Helm chart.
 - Develop everything in Go.
 
-Unofficially (not supported right now), you can also implement the Operator's logic with any programming language, such as [Java via a Quarkus extension][23].
+Unofficially (not supported right now), you can also implement the Operator's logic in other programming languages, such as [Java via a Quarkus extension][23].
 
-An Operator creates, watches, and maintains CRDs. This basically means that it provides new API resources to the cluster, such like a `Route` or `BuildConfig`. Whenever someone creates a new resource via `oc apply` based on the CRD, the Operator knows what to do. All the logic behind that mechanism is handled by the Operator. It makes extensively use of the Kubernetes API (just think about the work necessary to set up a clustered database or to back up and restore the persistent volume of a database).
+An Operator creates, watches, and maintains CRDs. This basically means that it provides new API resources to the cluster, such as a `Route` or `BuildConfig`. Whenever someone creates a new resource via `oc apply` based on the CRD, the Operator knows what to do. All the logic behind that mechanism (just think about the work necessary to set up a clustered database or to back up and restore the persistent volume of a database) is handled by the Operator. It makes extensively use of the Kubernetes API.
 
 If you need to have full control over everything, you have to create the Operator with Go or (unofficially) with Java. Otherwise, you can make use of an Ansible-based or Helm-based Operator. The Operator SDK and the base packages in Ansible and Helm take care of the Kubernetes API calls. So you don't have to learn Go now in order to build your first Operator.
 
 ### Creating a Helm-based Operator
-To create an Operator, you need to [install the Operator-SDK][24]. On macOS, you can simply execute `brew install operator-sdk`.
+To create an Operator, you need to [install the Operator-SDK][24]. On macOS, you can simply execute:
+
+```bash
+$ brew install operator-sdk
+```
 
 #### Generating the project structure
 In this example, we'll create an Operator based on the Helm chart created in earlier in the chapter:
@@ -461,7 +465,7 @@ Writing kustomize manifests for you to edit...
 Created helm-charts/person-service
 Generating RBAC rules
 I1027 13:19:52.883020   72377 request.go:665] Waited for 1.017668738s due to client-side throttling, not priority and fairness, request: GET:https://api.art6.ocp.lan:6443/apis/controlplane.operator.openshift.io/v1alpha1?timeout=32s
-WARN[0002] The RBAC rules generated in config/rbac/role.yaml are based on the chart's default manifest. Some rules may be missing for resources that are only enabled with custom values, and some existing rules may be overly broad. Double check the rules generated in config/rbac/role.yaml to ensure they meet the Operator's permission requirements.
+WARN[0002] The RBAC rules generated in config/rbac/role.yaml are based on the chart's default manifest. Some rules might be missing for resources that are only enabled with custom values, and some existing rules may be overly broad. Double check the rules generated in config/rbac/role.yaml to ensure they meet the Operator's permission requirements.
 ```
 
 These commands initialize the project for the Operator based on the chart found in the `../helm-chart` folder. A `PersonService` CRD should also have been created in `config/crd/bases`. The following listing shows the complete directory structure generated by the commands:
@@ -593,9 +597,9 @@ service/person-service-operator-controller-manager-metrics-service created
 deployment.apps/person-service-operator-controller-manager created
 ```
 
-This will create a `person-service-operator-system` namespace and install all the necessary files into Kubernetes. This namespace contains everything needed to handle the request to create a `PersonService`, but does not contain any instances of your newly created custom resource.
+This command creates a `person-service-operator-system` namespace and installs all the necessary files into Kubernetes. This namespace contains everything needed to handle the request to create a `PersonService`, but does not contain any instances of your newly created custom resource.
 
-If you now want to see your `PersonService` in action, create a new namespace and apply a new instance of the `PersonService` through the following configuration file `config/samples/charts_v1alpha1_personservice`:
+If you now want to see your `PersonService` in action, create a new namespace and apply a new instance of the `PersonService` through the following configuration file, located in `config/samples/charts_v1alpha1_personservice`:
 
 ```yaml
 apiVersion: charts.wanja.org/v1alpha1
@@ -631,7 +635,7 @@ $ make undeploy
 ```
 
 #### Building and running the Operator bundle image
-In order to release your Operator, you have to create an Operator bundle. This bundle is an image with metadata and manifests use by the Operator Lifecycle Manager (OLM), which takes care of every Operator deployed on Kubernetes. To create the bundle, enter:
+In order to release your Operator, you have to create an Operator bundle. This bundle is an image with the metadata and manifests used by the Operator Lifecycle Manager (OLM), which takes care of every Operator deployed on Kubernetes. To create the bundle, enter:
 
 ```bash
 $ make bundle
@@ -648,9 +652,9 @@ INFO[0000] All validation tests have completed successfully
 The bundle generator asks you a few questions to configure the bundle. Have a look at Figure 4 for the output.
 
 ![Image 4: Building the bundle][image-4]
- 
 
-Run the generator every time you change the `VERSION` field in the `Makefile`:
+
+Run the generator every time you change the `VERSION` field in the makefile:
 
 ```bash
 $ make bundle-build bundle-push
@@ -678,7 +682,9 @@ f01cda5511c8: Pushed
 v0.0.3: digest: sha256:780980b7b7df76faf7be01a7aebcdaaabc4b06dc85cc673f69ab75b58c7dca0c size: 939
 ```
 
-The bundle image gets pushed to Quay.io as `quay.io/wpernath/person-service-operator-bundle`. Finally, to install the Operator, enter:
+The bundle image gets pushed to Quay.io as `quay.io/wpernath/person-service-operator-bundle`. 
+
+Finally, to install the Operator, enter:
 ```bash
 $ operator-sdk run bundle quay.io/wpernath/person-service-operator-bundle:v0.0.3
 ```
@@ -686,7 +692,7 @@ $ operator-sdk run bundle quay.io/wpernath/person-service-operator-bundle:v0.0.3
 This command installs the Operator into OpenShift and registers it with the Operator Lifecycle Manager (OLM). After this, you'll be able to watch and manage your Operator via the OpenShift UI, just like the Operators that come with OpenShift (Figure 5).
 ![Image 5: The installed Operator in OpenShift UI][image-5]
 
-You can create a new instance of the service in the UI by clicking Installed Operators→PersonService→Create PersonService, or by executing the following at the command line:
+You can create a new instance of the service in the UI by clicking **Installed Operators→PersonService→Create PersonService**, or by executing the following at the command line:
 
 ```bash
 $ oc apply -f config/samples/charts_v1alpha1_personservice
@@ -710,7 +716,7 @@ Creating an Operator just as a replacement for a Helm chart does not really make
 However, as soon as you need more influence over the creation and maintenance of your application and its associated resources, think about building an Operator. Fortunately, the Operator SDK and the documentation help you with the first steps.
 
 ## Summary
-This chapter has described how to build images. You've learned more about the various command-line tools (`skopeo`, `podman`, `buildah` etc.). You also saw how to create a Helm Chart and a Kubernetes Operator. And you should be able to decide when to use each tool.
+This chapter has described how to build images. You've learned more about the various command-line tools (`skopeo`, `podman`, `buildah` etc.). You also saw how to create a Helm Chart and a Kubernetes Operator. And you should know how to decide when to use each tool.
 
 The next chapter of this book will talk about Tekton pipelines as a form of internal distribution.
 
