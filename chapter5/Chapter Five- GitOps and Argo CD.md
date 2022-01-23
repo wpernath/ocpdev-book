@@ -776,10 +776,10 @@ This book has taken you through a tour of tools that help with every stage of de
 [image-2]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/install-gitops-operator.png
 [image-3]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/argocd-on-openshift.png
 [image-4]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/argocd-new-app.png
-[image-5]:	argocd-sync-failed.png
-[image-6]:	argocd-sync-success.png
-[image-7]:	tekton-non-gitops-pipeline.png
-[image-8]:	gitops-dev-pipeline.png
-[image-9]:	tekton-parameter-mapping.png
-[image-10]:	gitops-stage-pipeline.png
-[image-11]:	argocd-sync-log.png
+[image-5]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/argocd-sync-failed.png
+[image-6]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/argocd-sync-success.png
+[image-7]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/tekton-non-gitops-pipeline.png
+[image-8]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/gitops-dev-pipeline.png
+[image-9]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/tekton-parameter-mapping.png
+[image-10]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/gitops-stage-pipeline.png
+[image-11]:	file:///Users/wpernath/Devel/ocpdev-book/chapter5/argocd-sync-log.png
