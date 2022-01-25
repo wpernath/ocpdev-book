@@ -53,7 +53,7 @@ First of all, why are we going to use Jib for building the container image? Well
 - Jib
 The Docker strategy uses the `docker` binary to build the container image. But the `docker` binary is not available inside a Kubernetes cluster (as mentioned in Chapter 3), because Docker is too heavyweight and requires root privileges to run the daemon.
 
-S2I requires creating `BuildConfig, `DeploymentConfig`, and `ImageStream` objects specific to OpenShift, but these are not available in vanilla Kubernetes clusters.
+S2I requires creating `BuildConfig,`DeploymentConfig`, and`ImageStream\` objects specific to OpenShift, but these are not available in vanilla Kubernetes clusters.
 
 So in order to stay vendor-independent, we have to use Jib for this use case.
 
@@ -100,7 +100,7 @@ This command compiles the sources and builds the container image. If you want to
 $ mvn package -DskipTests -Dquarkus.container-image.push=true
 ```
 
-After a while, Quarkus will generate and push your image to your registry. In my case, it’s `quay.io/wpernath/person-service?`. **[AO: Does the question mark have to be in the name?]**
+After a while, Quarkus will generate and push your image to your registry. In my case, it’s `quay.io/wpernath/person-service`. 
 
 ### Inventory check: What do we need?
 To create our use case, you need the following tools:
