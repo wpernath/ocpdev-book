@@ -1,6 +1,6 @@
-# GitOps with OpenShift from Scratch
+# Getting GitOps. A Practical Platform with OpenShift, Argo CD and Tekton.
 
-This is a repository with all the sources for the Book "GitOps with OpenShift from Scratch - Open source CI/CD with OpenShift, ArgoCD and Tekton". 
+This is a repository with all the sources for the Book "Getting GitOps. A Practical Platform with OpenShift, Argo CD and Tekton.". 
 
 # Status of the chapters
 
