@@ -522,7 +522,7 @@ Let’s specify the properties accordingly:
 ```java
 # Packaging the app
 quarkus.container-image.builder=jib
-quarkus.container-image.image=quay.io/wpernath/singer:v1.0.0
+quarkus.container-image.image=quay.io/wpernath/person-service:v1.0.0
 quarkus.openshift.route.expose=true
 quarkus.openshift.deployment-kind=Deployment
 
@@ -539,7 +539,7 @@ Now build the application container image via:
 $ mvn package -Dquarkus.container-image.push=true
 ```
 
-This command also pushes the image to [Quay.io][12] as `quay.io/wpernath/singer:v1.0.0`. Quarkus is using [Jib][13] to build the image.
+This command also pushes the image to [Quay.io][12] as `quay.io/wpernath/person-service:v1.0.0`. Quarkus is using [Jib][13] to build the image.
 
 After the image is built, you can install the application into OpenShift by applying the manifest file:
 
@@ -575,17 +575,17 @@ After restarting the `person-service` you should see that the database is used a
 
 So fill the database now:
 ```bash
-$ http POST http://person-service-paul.apps.art8.ocp.lan/person firstName=Jimi lastName=Hendrix salutation=Mr
+$ http POST http://person-service.apps.art8.ocp.lan/person firstName=Jimi lastName=Hendrix salutation=Mr
 
-$ http POST http://person-service-paul.apps.art8.ocp.lan/person firstName=Joe lastName=Cocker salutation=Mr
+$ http POST http://person-service.apps.art8.ocp.lan/person firstName=Joe lastName=Cocker salutation=Mr
 
-$ http POST http://person-service-paul.apps.art8.ocp.lan/person firstName=Carlos lastName=Santana salutation=Mr
+$ http POST http://person-service.apps.art8.ocp.lan/person firstName=Carlos lastName=Santana salutation=Mr
 
 ```
 
 You should now have three singers in the database. To verify, call:
 ```bash
-$ http http://person-service-paul.apps.art8.ocp.lan/person
+$ http http://person-service.apps.art8.ocp.lan/person
 HTTP/1.1 200 OK
 
 [
