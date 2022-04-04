@@ -27,14 +27,35 @@ Podman was then invented and became a popular replacement for Docker. Podman per
 
 However, Podman as a full Docker Desktop replacement currently runs only on GNU/Linux. If you are working on a Windows or macOS system, you have to [set up a remote Linux system to make full use of Podman][6]. You might also have a look at [a newer version of CodeReady Containers (version 2.x onwards)][7], which aims to become a full Docker Desktop replacement for Windows and macOS using Podman underneath. 
 
-Podman internally uses [Buildah][8] to build container images. According to the official [GitHub page][9], Buildah is the main tool for building images that conform to the [Open Container Initiative (OCI)][10] standard. The documentation states, "Buildah's commands replicate all the commands that are found in a Dockerfile. This allows building images with and without a Dockerfile, without requiring any root privileges."
+[Podman 4.x onwards][8] massively simplifies the way to setup the required remote Linux system with a new API. The following command initializes a new host:
 
-To build a container image inside OpenShift (for example, using [Source-to-Image (S2I)][11] or a Tekton pipeline), you should directly use Buildah instead.
+```bash
+$ podman machine init
+```
+
+And the following command starts the local VM:
+```bash
+$ podman machine start
+```
+
+If you previously have used Podman on your Windows or MacOS system, have a look at the system connection list. It should return something like this. If there is still your old system connection available, then either delete it or make it non-default. 
+
+```bash
+$ npodman system connection list
+Name                         URI                                                         Identity                                     Default
+podman-machine-default       ssh://core@localhost:58845/run/user/501/podman/podman.sock  /Users/wpernath/.ssh/podman-machine-default  true
+podman-machine-default-root  ssh://root@localhost:58845/run/podman/podman.sock           /Users/wpernath/.ssh/podman-machine-default  false
+
+```
+
+Podman internally uses [Buildah][9] to build container images. According to the official [GitHub page][10], Buildah is the main tool for building images that conform to the [Open Container Initiative (OCI)][11] standard. The documentation states, "Buildah's commands replicate all the commands that are found in a Dockerfile. This allows building images with and without a Dockerfile, without requiring any root privileges."
+
+To build a container image inside OpenShift (for example, using [Source-to-Image (S2I)][12] or a Tekton pipeline), you should directly use Buildah instead.
 
 But because everything you can do with Buildah is part of Podman anyway, there is no CLI client for macOS or Windows. The documentation states to use Podman instead.
 
 #### Your first build
-With Docker or Podman in place, along with a repository on Quay.io or another service, check out the [demo repository for this article][12]. In `person-service/src/main/docker` you can find the file that configures builds for your application. The file is called simply `Dockerfile`. To build the demo application, based on the Quarkus Java framework, change into the top-level directory containing the demo files. Then enter the following commands, plugging in your Quay.io username and password:
+With Docker or Podman in place, along with a repository on Quay.io or another service, check out the [demo repository for this article][13]. In `person-service/src/main/docker` you can find the file that configures builds for your application. The file is called simply `Dockerfile`. To build the demo application, based on the Quarkus Java framework, change into the top-level directory containing the demo files. Then enter the following commands, plugging in your Quay.io username and password:
 
 ```bash
 $ docker login quay.io -u <username> -p <password>
@@ -42,13 +63,13 @@ $ mvn clean package -DskipTests
 $ docker build -f src/main/docker/Dockerfile.jvm -t quay.io/wpernath/person-service .
 ```
 
-The first command logs into your Quay.io account. The second command builds the application with [Maven][13]. The third, finally, creates a Docker image out of the app. If you choose to use Podman, simply substitute `podman` for `docker` in your Docker commands, because Podman supports the same arguments. You could also make scripts that invoke Docker run with Podman instead, by aliasing the string `docker` to `podman`:
+The first command logs into your Quay.io account. The second command builds the application with [Maven][14]. The third, finally, creates a Docker image out of the app. If you choose to use Podman, simply substitute `podman` for `docker` in your Docker commands, because Podman supports the same arguments. You could also make scripts that invoke Docker run with Podman instead, by aliasing the string `docker` to `podman`:
 
 ```bash
 $ alias docker=podman
 ```
 
-Setting up Podman on any non-Linux system is a little bit tricky, as mentioned. You need access to a Linux system, running either directly on one of your systems or in a virtual machine. The Linux system basically works as the execution unit for the Podman client. The [documentation mentioned earlier][14] shows you how that works.
+Setting up Podman on any non-Linux system is a little bit tricky, as mentioned. You need access to a Linux system, running either directly on one of your systems or in a virtual machine. The Linux system basically works as the execution unit for the Podman client. The [documentation mentioned earlier][15] shows you how that works.
 
 When your image is ready, you need to push the image to your repository:
 
@@ -123,7 +144,7 @@ If you're on any other operating system than Linux, Podman is a little bit compl
 This is unfortunate, because Podman is much more lightweight than Docker. And Podman does not require root access. So if you have some time—or are already developing your applications on Linux—try to set up Podman. If not, continue to use Docker.
 
 #### Working with Skopeo
-[Skopeo][15] is another command line tool that helps you work with container images and different image registries without the heavyweight Docker daemon. On macOS, you can easily install Skopeo via `brew`:
+[Skopeo][16] is another command line tool that helps you work with container images and different image registries without the heavyweight Docker daemon. On macOS, you can easily install Skopeo via `brew`:
 
 ```bash
 $ brew install skopeo
@@ -140,14 +161,14 @@ $ skopeo copy \
 But you can also use Skopeo to mirror a complete repository by copying all images in one go.
 
 ### Next steps after building the application
-Now that your image is stored in a remotely accessible repository, you can start thinking about how to let a third party easily install your application. Two mechanisms are popular for this task: [Helm charts][16] and a [Kubernetes Operator][17]. The rest of this chapter introduces these tools.
+Now that your image is stored in a remotely accessible repository, you can start thinking about how to let a third party easily install your application. Two mechanisms are popular for this task: [Helm charts][17] and a [Kubernetes Operator][18]. The rest of this chapter introduces these tools.
 
 ## Helm Charts
 Think about Helm charts as a package manager for Kubernetes applications, like RPM or `.deb` files for Linux. Once a Helm chart is created and hosted on a repository, everyone is able to install, update, and delete your chart from a running Kubernetes installation.
 
 Let's first have a look at how to create a Helm chart to install your application on OpenShift.
 
-First of all, you need to download and [install the Helm CLI][18]. On macOS you can easily do this via:
+First of all, you need to download and [install the Helm CLI][19]. On macOS you can easily do this via:
 
 ```bash
 $ brew install helm
@@ -322,13 +343,13 @@ data:
 
 This ConfigMap defines a parameter named `APP_GREETING` with the content of the variable `.Values.config.greeting` (the initial period must be present). If this variable is not defined, the default will be used.
 
-Helm also defines some [built-in objects][19] with predefined parameters:
+Helm also defines some [built-in objects][20] with predefined parameters:
 - `.Release` can be used after the Helm chart is installed in a Kubernetes environment. The parameter defines variables such as `.Name` and `.Namespace`.
 - `.Capabilities` provides information about the Kubernetes cluster where the chart is installed.
 - `.Chart` provides access to the content of the `Chart.yaml` file. Any data in that file is accessible.
 - `.Files` provides access to all non-special files in a chart. You can't use this parameter to access template files, but you can use it to read and parse other files in your chart, for example to generate the contents of a ConfigMap.
 
-Because [Helm's templating engine][20] is an implementation of the [templating engine][21] of the [Go][22] programming language, you also have access to functions and flow control. For example, if you want to write only certain parts of the `deployment.yaml` file, you can do something like:
+Because [Helm's templating engine][21] is an implementation of the [templating engine][22] of the [Go][23] programming language, you also have access to functions and flow control. For example, if you want to write only certain parts of the `deployment.yaml` file, you can do something like:
 
 ```yaml
 {{- if .Values.deployment.includeHealthChecks }}
@@ -346,7 +367,7 @@ Typically, after you execute `helm install`, all the generated files are sent di
 - The `helm install --dry-run --debug` command renders your files without sending them to Kubernetes.
 
 ### Defining a hook
-It is often valuable to include sample data with an application for mocking and testing. But if you want to install a database with example data as part of your Helm chart, you need to find a way of initializing the database. This is where [Helm hooks][23] come into play.
+It is often valuable to include sample data with an application for mocking and testing. But if you want to install a database with example data as part of your Helm chart, you need to find a way of initializing the database. This is where [Helm hooks][24] come into play.
 
 Basically, a hook is just another Kubernetes resource (such as a job or a pod), which gets executed when a certain event is triggered. An event could take place at one of the following points:
 - pre-install
@@ -434,14 +455,14 @@ Of course, this makes an Operator way more complex than a Helm chart, because al
 - Create it from Helm chart.
 - Develop everything in Go.
 
-Unofficially (not supported right now), you can also implement the Operator's logic in other programming languages, such as [Java via a Quarkus extension][24].
+Unofficially (not supported right now), you can also implement the Operator's logic in other programming languages, such as [Java via a Quarkus extension][25].
 
 An Operator creates, watches, and maintains CRDs. This basically means that it provides new API resources to the cluster, such as a `Route` or `BuildConfig`. Whenever someone creates a new resource via `oc apply` based on the CRD, the Operator knows what to do. All the logic behind that mechanism (just think about the work necessary to set up a clustered database or to back up and restore the persistent volume of a database) is handled by the Operator. It makes extensively use of the Kubernetes API.
 
 If you need to have full control over everything, you have to create the Operator with Go or (unofficially) with Java. Otherwise, you can make use of an Ansible-based or Helm-based Operator. The Operator SDK and the base packages in Ansible and Helm take care of the Kubernetes API calls. So you don't have to learn Go now in order to build your first Operator.
 
 ### Creating a Helm-based Operator
-To create an Operator, you need to [install the Operator-SDK][25]. On macOS, you can simply execute:
+To create an Operator, you need to [install the Operator-SDK][26]. On macOS, you can simply execute:
 
 ```bash
 $ brew install operator-sdk
@@ -576,7 +597,7 @@ ddaee5130ba6: Pushed
 In your repository on Quay.io, you now have a new image called `person-service-operator`. This image contains the logic to manage the Helm chart. The image exposes the CRD and the new Kubernetes API.
 
 #### Testing your Operator
-There are currently three different ways of run an Operator, listed in the official [SDK tutorial][26]. The easiest way to test your Operator is to run:
+There are currently three different ways of run an Operator, listed in the official [SDK tutorial][27]. The easiest way to test your Operator is to run:
 
 ```bash
 $ make deploy
@@ -727,25 +748,26 @@ The next chapter of this book will talk about Tekton pipelines as a form of inte
 [5]:	https://podman.io/getting-started/installation "Podman"
 [6]:	https://github.com/containers/podman/blob/master/docs/tutorials/mac_win_client.md "Setting up remote podman"
 [7]:	https://crc.dev/crc/#about-presets_gsg
-[8]:	https://buildah.io/
-[9]:	https://github.com/containers/buildah "Buildah"
-[10]:	https://opencontainers.org/ "Open Container Initiative"
-[11]:	https://github.com/openshift/source-to-image "Source-to-Image"
-[12]:	https://github.com/wpernath/book-example "Demo App Git Repo"
-[13]:	https://maven.apache.org/what-is-maven.html "Maven"
-[14]:	https://github.com/containers/podman/blob/master/docs/tutorials/mac_win_client.md "Setting up remote podman"
-[15]:	https://github.com/containers/skopeo "Skopeo"
-[16]:	https://helm.sh "Helm chart"
-[17]:	https://operatorframework.io "Kubernetes Operator"
-[18]:	https://helm.sh/docs/intro/install/ "Install Helm"
-[19]:	https://helm.sh/docs/chart_template_guide/builtin_objects/ "built-in objects"
-[20]:	https://helm.sh/docs/chart_template_guide/getting_started/ "Helm Templating Engine"
-[21]:	https://pkg.go.dev/text/template?utm_source=godoc
-[22]:	https://golang.org "Golang"
-[23]:	https://helm.sh/docs/topics/charts_hooks/ "Helm hooks"
-[24]:	https://github.com/quarkiverse/quarkus-operator-sdk "Quarkus Operator SDK Extension"
-[25]:	https://sdk.operatorframework.io/docs/installation/ "Install Operator-SDK"
-[26]:	https://sdk.operatorframework.io/docs/building-operators/helm/tutorial/ "SDK tutorial"
+[8]:	https://podman.io/releases/2022/02/22/podman-release-v4.0.0.html
+[9]:	https://buildah.io/
+[10]:	https://github.com/containers/buildah "Buildah"
+[11]:	https://opencontainers.org/ "Open Container Initiative"
+[12]:	https://github.com/openshift/source-to-image "Source-to-Image"
+[13]:	https://github.com/wpernath/book-example "Demo App Git Repo"
+[14]:	https://maven.apache.org/what-is-maven.html "Maven"
+[15]:	https://github.com/containers/podman/blob/master/docs/tutorials/mac_win_client.md "Setting up remote podman"
+[16]:	https://github.com/containers/skopeo "Skopeo"
+[17]:	https://helm.sh "Helm chart"
+[18]:	https://operatorframework.io "Kubernetes Operator"
+[19]:	https://helm.sh/docs/intro/install/ "Install Helm"
+[20]:	https://helm.sh/docs/chart_template_guide/builtin_objects/ "built-in objects"
+[21]:	https://helm.sh/docs/chart_template_guide/getting_started/ "Helm Templating Engine"
+[22]:	https://pkg.go.dev/text/template?utm_source=godoc
+[23]:	https://golang.org "Golang"
+[24]:	https://helm.sh/docs/topics/charts_hooks/ "Helm hooks"
+[25]:	https://github.com/quarkiverse/quarkus-operator-sdk "Quarkus Operator SDK Extension"
+[26]:	https://sdk.operatorframework.io/docs/installation/ "Install Operator-SDK"
+[27]:	https://sdk.operatorframework.io/docs/building-operators/helm/tutorial/ "SDK tutorial"
 
 [image-1]:	file:///Users/wpernath/Devel/ocpdev-book/chapter3/1-person-service-on-quayio.png
 [image-2]:	file:///Users/wpernath/Devel/ocpdev-book/chapter3/2-event-log-openshift.png
