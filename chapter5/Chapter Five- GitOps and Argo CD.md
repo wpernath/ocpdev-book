@@ -46,7 +46,7 @@ Each application is assigned to a project and inherits the project's settings. A
 
 Once the application is registered, you can manually start a sync to update the actual environment. Alternatively, Argo CD starts "healing" the application automatically, if the synchronization policy is set to do so.
 
-## The Use Case: Implementing GitOps for our quarkus-simple App
+## The Use Case: Implementing GitOps for our person-service App
 We've been using the [person service][2] over the course of this book. Let's continue to use it and create a GitOps workflow for it. You can find all the resources discussed here in the `gitops` folder within the `book-example` repository on GitHub.
 
 We are going to set up Argo CD (via the [OpenShift GitOps Operator][3]) on OpenShift 4.9 (via [Red Hat CodeReady Containers][4]). We are going to use [Tekton to build a pipeline][5], which updates the [person-service-config][6] Git repository with the latest image digest of the build. Argo CD should then detect the changes and should start a synchronization of our application.
@@ -301,7 +301,7 @@ To install everything in one go, you simply have to execute the following comman
 $ oc apply -k book-example/gitops/argocd
 ```
 
-## Creating a Tekton Pipeline to Update quarkus-simple-config
+## Creating a Tekton Pipeline to Update person—service-config
 We now want to change our pipeline from  the previous chapter (Figure 7) to be more GitOps'y. But what exactly needs to be done?
 ![Image 7: Tekton pipeline from Chapter 4][image-7]
 

@@ -41,7 +41,7 @@ $ podman machine start
 If you previously have used Podman on your Windows or MacOS system, have a look at the system connection list. It should return something like this. If there is still your old system connection available, then either delete it or make it non-default. 
 
 ```bash
-$ npodman system connection list
+$ podman system connection list
 Name                         URI                                                         Identity                                     Default
 podman-machine-default       ssh://core@localhost:58845/run/user/501/podman/podman.sock  /Users/wpernath/.ssh/podman-machine-default  true
 podman-machine-default-root  ssh://root@localhost:58845/run/podman/podman.sock           /Users/wpernath/.ssh/podman-machine-default  false
